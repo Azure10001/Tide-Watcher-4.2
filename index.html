@@ -1,0 +1,2919 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>潮汐的守望 4.2 — 四季之约</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+
+  :root {
+    --sea-50: #f0f8fa; --sea-100: #e0f0f5; --sea-200: #c0e0eb;
+    --sea-300: #90c8d8; --sea-400: #5faec4; --sea-500: #3a8fa8;
+    --sea-600: #2c6f85; --sea-700: #1f5263;
+    --coral-100: #ffe8e0; --coral-300: #ffb5a0; --coral-500: #f58568;
+    --sand-100: #fff6e8; --sand-200: #ffe9c4; --sand-300: #f5d89a;
+    --gold: #e5b96a; --gold-dark: #b88a3d;
+    --ink: #1f3a44; --ink-soft: #5a7a85;
+    --mint: #a8d8c9; --lavender: #c9b8e0;
+    --pink: #f5c6d8; --pink-dark: #c98aa8;
+    --green: #7ab89a;
+    /* 四季色 */
+    --spring: linear-gradient(135deg, #f0f8e8, #fce8e8);
+    --summer: linear-gradient(135deg, #e0f4f8, #fef4c8);
+    --autumn: linear-gradient(135deg, #fce8d8, #f5e8c8);
+    --winter: linear-gradient(135deg, #e8f0f8, #f8fcff);
+  }
+
+  body {
+    background: linear-gradient(160deg, #eaf5f8 0%, #f5f0e8 100%);
+    background-image:
+      radial-gradient(circle at 12% 18%, #d9eef5 0%, transparent 45%),
+      radial-gradient(circle at 88% 82%, #fde8dd 0%, transparent 50%),
+      linear-gradient(180deg, #f0f8fa 0%, #fdf5ec 100%);
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    padding: 10px; margin: 0; overflow-x: hidden;
+  }
+
+  .app-container {
+    max-width: 820px; width: 100%;
+    background: rgba(255, 255, 255, 0.78);
+    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    border-radius: 44px;
+    box-shadow: 0 40px 80px -20px rgba(60, 110, 130, 0.25),
+                0 20px 40px -20px rgba(60, 110, 130, 0.15),
+                inset 0 0 0 1.5px rgba(255, 255, 255, 0.9);
+    padding: 22px 20px 24px;
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    position: relative;
+  }
+
+  /* 顶部栏 */
+  .top-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px; padding: 0 2px;
+    gap: 8px; flex-wrap: wrap;
+  }
+  .game-title {
+    font-size: 1.3rem; font-weight: 800;
+    background: linear-gradient(135deg, var(--sea-700), var(--sea-400));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    letter-spacing: -0.5px; display: flex; align-items: center; gap: 7px;
+  }
+  .game-title .ver {
+    font-size: 0.6rem; background: linear-gradient(135deg, var(--coral-500), var(--coral-300));
+    color: #fff; padding: 3px 9px; border-radius: 40px;
+    -webkit-text-fill-color: #fff; font-weight: 600; letter-spacing: 0.5px;
+    box-shadow: 0 3px 8px rgba(240, 120, 100, 0.3);
+  }
+  .top-right-group { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+  .progress-badge {
+    display: flex; align-items: center; gap: 6px;
+    background: linear-gradient(135deg, #fff5fb, #ffe8dd);
+    padding: 6px 14px 6px 10px; border-radius: 60px;
+    border: 1.5px solid var(--coral-300);
+    box-shadow: 0 4px 12px -4px rgba(240, 140, 110, 0.3);
+    font-weight: 700; font-size: 0.78rem; color: var(--coral-500);
+  }
+  .progress-badge .icon { font-size: 1.05rem; }
+  .progress-badge .main { line-height: 1.1; }
+  .progress-badge .sub { font-size: 0.58rem; color: #d08070; font-weight: 500; }
+
+  .icon-btn {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1.5px solid var(--sea-200);
+    width: 38px; height: 38px; border-radius: 50%;
+    font-size: 1.1rem; cursor: pointer; color: var(--sea-600);
+    line-height: 1; display: flex; align-items: center; justify-content: center;
+    transition: 0.15s; font-family: inherit;
+    box-shadow: 0 3px 8px -3px rgba(60, 110, 130, 0.3);
+    position: relative;
+  }
+  .icon-btn:hover { background: var(--sea-100); transform: translateY(-1px); }
+  .icon-btn .mini-badge {
+    position: absolute; top: -3px; right: -3px;
+    background: var(--coral-500); color: #fff;
+    font-size: 0.5rem; font-weight: 800;
+    min-width: 14px; height: 14px; border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 3px;
+  }
+
+  /* 女儿舞台 */
+  .daughter-stage {
+    position: relative;
+    background: linear-gradient(180deg, #e8f4f8 0%, #fdf0e5 60%, #fce4d6 100%);
+    border-radius: 32px; padding: 18px 18px 14px;
+    border: 1.5px solid rgba(255, 255, 255, 0.9);
+    box-shadow: 0 12px 30px -12px rgba(100, 150, 170, 0.35),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    margin-bottom: 14px; overflow: hidden; min-height: 200px;
+  }
+  .stage-bg { position: absolute; inset: 0; pointer-events: none; opacity: 0.6; }
+  .stage-bg::before {
+    content: ''; position: absolute; top: 20px; right: 30px;
+    width: 90px; height: 90px;
+    background: radial-gradient(circle, #fff8e0 0%, #ffe8b8 50%, transparent 70%);
+    border-radius: 50%; filter: blur(4px);
+  }
+  .stage-bg::after {
+    content: ''; position: absolute; bottom: -30px; left: -20px;
+    width: 200px; height: 120px;
+    background: radial-gradient(ellipse, rgba(140, 200, 215, 0.5) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .tide-deco {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 30px; pointer-events: none; opacity: 0.5;
+  }
+  .tide-deco svg { width: 100%; height: 100%; }
+
+  .stage-content { position: relative; display: flex; gap: 16px; align-items: flex-start; }
+
+  .daughter-visual {
+    flex-shrink: 0; width: 130px; height: 160px;
+    position: relative; display: flex; align-items: flex-end; justify-content: center;
+  }
+  .daughter-avatar {
+    font-size: 5.6rem; line-height: 1;
+    filter: drop-shadow(0 8px 12px rgba(60, 110, 130, 0.25));
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform-origin: bottom center;
+    animation: breathe 3s ease-in-out infinite;
+    cursor: pointer;
+  }
+  @keyframes breathe {
+    0%, 100% { transform: scale(1) translateY(0); }
+    50% { transform: scale(1.03) translateY(-3px); }
+  }
+  .daughter-avatar.happy { animation: bounce 0.6s ease; }
+  @keyframes bounce {
+    0%, 100% { transform: scale(1) translateY(0); }
+    30% { transform: scale(1.15) translateY(-12px); }
+    60% { transform: scale(0.95) translateY(0); }
+  }
+  .daughter-avatar.sad { animation: shake 0.6s ease; }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-6px); } 40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); } 80% { transform: translateX(4px); }
+  }
+  .daughter-avatar.focus { animation: focus-bob 2s ease-in-out infinite; }
+  @keyframes focus-bob {
+    0%, 100% { transform: translateY(0) rotate(-1deg); }
+    50% { transform: translateY(-4px) rotate(1deg); }
+  }
+  .daughter-avatar.tired { filter: drop-shadow(0 8px 12px rgba(60, 110, 130, 0.25)) grayscale(0.3); }
+  .daughter-shadow {
+    position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
+    width: 70px; height: 12px;
+    background: radial-gradient(ellipse, rgba(60, 110, 130, 0.3) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .daughter-status-tag {
+    position: absolute; top: -4px; left: 50%; transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.95); padding: 4px 12px;
+    border-radius: 30px; font-size: 0.7rem; font-weight: 700;
+    color: var(--sea-700); white-space: nowrap;
+    box-shadow: 0 4px 12px -4px rgba(60, 110, 130, 0.3);
+    border: 1px solid var(--sea-200);
+    opacity: 0; transition: opacity 0.3s, transform 0.3s;
+  }
+  .daughter-status-tag.show { opacity: 1; transform: translateX(-50%) translateY(-6px); }
+
+  .daughter-speech {
+    flex: 1; background: #ffffff;
+    border-radius: 22px 22px 22px 6px;
+    padding: 14px 18px; position: relative;
+    box-shadow: 0 8px 24px -8px rgba(60, 110, 130, 0.3),
+                inset 0 0 0 1.5px rgba(200, 230, 240, 0.9);
+    min-height: 70px; display: flex; align-items: center;
+    font-size: 0.85rem; line-height: 1.55; color: var(--ink);
+    font-weight: 500; transition: all 0.3s;
+  }
+  .daughter-speech::before {
+    content: ''; position: absolute; left: -8px; bottom: 14px;
+    width: 0; height: 0;
+    border-right: 12px solid #ffffff;
+    border-top: 8px solid transparent; border-bottom: 8px solid transparent;
+    filter: drop-shadow(-1px 0 0 rgba(200, 230, 240, 0.9));
+  }
+  .daughter-speech .text { white-space: pre-line; }
+
+  .daughter-traits { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+  .trait-chip {
+    background: rgba(255, 255, 255, 0.75); border: 1px solid var(--sea-200);
+    border-radius: 30px; padding: 3px 10px; font-size: 0.65rem;
+    font-weight: 600; color: var(--sea-600);
+    display: flex; align-items: center; gap: 3px;
+  }
+  .trait-chip.personality { background: linear-gradient(135deg, #fff0f7, #fbe0ed); color: var(--pink-dark); border-color: var(--pink); }
+  .trait-chip.hobby { background: linear-gradient(135deg, #f0f7ff, #e0eef9); color: #5a7ba0; border-color: #c5ddef; }
+  .trait-chip.talent { background: linear-gradient(135deg, #fff8e6, #ffefc8); color: #8a6a2e; border-color: var(--sand-300); }
+
+  /* 属性 - 5 个经典属性 */
+  .stats-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 12px; }
+  .stat-pill {
+    background: rgba(255, 255, 255, 0.85); border-radius: 18px;
+    padding: 8px 4px 7px; text-align: center;
+    border: 1.5px solid var(--sea-100);
+    box-shadow: 0 4px 12px -6px rgba(100, 150, 170, 0.25);
+    position: relative; overflow: hidden; transition: transform 0.15s;
+  }
+  .stat-pill.bump { animation: statBump 0.5s ease; }
+  @keyframes statBump {
+    0%, 100% { transform: scale(1); }
+    40% { transform: scale(1.08); }
+  }
+  .stat-pill.warn { animation: warnPulse 1s infinite; }
+  @keyframes warnPulse {
+    0%, 100% { box-shadow: 0 4px 12px -6px rgba(100, 150, 170, 0.25); }
+    50% { box-shadow: 0 4px 16px -4px rgba(240, 120, 100, 0.6); }
+  }
+  .stat-pill .icon { font-size: 1rem; display: block; line-height: 1; }
+  .stat-pill .num {
+    font-size: 1.15rem; font-weight: 800; color: var(--ink);
+    line-height: 1.1; font-variant-numeric: tabular-nums;
+  }
+  .stat-pill .lbl {
+    font-size: 0.6rem; color: var(--ink-soft); font-weight: 600;
+    letter-spacing: 0.3px; margin-top: 1px;
+  }
+  .stat-pill.money .num { color: var(--gold-dark); }
+  .stat-bar { height: 3px; background: var(--sea-100); border-radius: 3px; margin-top: 3px; overflow: hidden; }
+  .stat-bar > div {
+    height: 100%; background: linear-gradient(90deg, var(--sea-300), var(--sea-500));
+    border-radius: 3px; transition: width 0.5s ease;
+  }
+  .stat-pill.money .stat-bar > div { background: linear-gradient(90deg, var(--sand-300), var(--gold)); }
+  .stat-pill.stamina .stat-bar > div { background: linear-gradient(90deg, #a8d8c9, #5cb890); }
+  .stat-pill.mood .stat-bar > div { background: linear-gradient(90deg, #f5c6d8, #d97da6); }
+  .stat-pill.trust .stat-bar > div { background: linear-gradient(90deg, #c9b8e0, #9a7ac8); }
+
+  /* 专注区 */
+  .focus-box {
+    background: linear-gradient(135deg, #f0f8fa 0%, #e0f0f5 100%);
+    border-radius: 28px; padding: 16px 18px;
+    border: 1.5px solid rgba(255, 255, 255, 0.9);
+    box-shadow: 0 10px 28px -14px rgba(100, 150, 170, 0.4), inset 0 1px 0 #fff;
+    margin-bottom: 12px;
+    display: flex; gap: 18px; align-items: center;
+    position: relative;
+  }
+  .focus-disc-wrap {
+    position: relative; width: 160px; height: 160px; flex-shrink: 0;
+  }
+  #timerCanvas { width: 100%; height: 100%; touch-action: none; cursor: grab; }
+  #timerCanvas.locked { cursor: not-allowed; }
+  #timerCanvas:active { cursor: grabbing; }
+  .focus-disc-info {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%); text-align: center;
+    pointer-events: none; width: 80%;
+  }
+  .focus-disc-time {
+    font-size: 1.7rem; font-weight: 800; color: var(--ink);
+    line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: 1px;
+  }
+  .focus-disc-hint {
+    font-size: 0.55rem; color: var(--ink-soft); font-weight: 600;
+    letter-spacing: 0.5px; margin-top: 3px; text-transform: uppercase;
+  }
+
+  .focus-info-col { flex: 1; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .focus-preview {
+    background: linear-gradient(135deg, #fff8e6, #ffefc8);
+    border-radius: 16px; padding: 9px 14px;
+    border: 1.5px solid var(--sand-300);
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 4px 10px -4px rgba(200, 160, 80, 0.3);
+  }
+  .focus-preview .lbl { font-size: 0.7rem; color: #a17b3a; font-weight: 600; }
+  .focus-preview .val { font-size: 1.1rem; font-weight: 800; color: var(--gold-dark); display: flex; align-items: center; gap: 4px; }
+  .focus-buttons { display: flex; gap: 8px; }
+  .focus-buttons .btn { flex: 1; padding: 11px 10px; font-size: 0.85rem; }
+  .focus-companion {
+    font-size: 0.7rem; color: var(--sea-600); text-align: center;
+    padding: 6px; background: rgba(255, 255, 255, 0.7);
+    border-radius: 12px; border: 1px solid var(--sea-100);
+    display: flex; align-items: center; justify-content: center; gap: 5px; font-weight: 600;
+  }
+  .focus-companion .dot {
+    width: 6px; height: 6px; background: var(--sea-400);
+    border-radius: 50%; animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.3); }
+  }
+
+  /* 按钮 */
+  .btn {
+    border: none; background: rgba(255, 255, 255, 0.95);
+    padding: 11px 18px; border-radius: 50px;
+    font-weight: 700; font-size: 0.88rem; color: var(--sea-700);
+    box-shadow: 0 5px 12px -5px rgba(60, 110, 130, 0.35), inset 0 0 0 1.5px var(--sea-100);
+    cursor: pointer; transition: all 0.12s ease;
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    font-family: inherit;
+  }
+  .btn:active { transform: translateY(2px); box-shadow: 0 2px 6px -2px rgba(60, 110, 130, 0.35), inset 0 0 0 1.5px var(--sea-100); }
+  .btn:disabled { opacity: 0.4; transform: none; pointer-events: none; filter: grayscale(0.4); }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--sea-300), var(--sea-500));
+    color: #fff; box-shadow: 0 6px 14px -5px var(--sea-500), inset 0 0 0 1.5px #d9eef5;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  }
+  .btn-primary:active { box-shadow: 0 2px 6px -2px var(--sea-500), inset 0 0 0 1.5px #d9eef5; }
+  .btn-coral {
+    background: linear-gradient(135deg, var(--coral-300), var(--coral-500));
+    color: #fff; box-shadow: 0 6px 14px -5px var(--coral-500), inset 0 0 0 1.5px #ffe8e0;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  }
+
+  /* 主界面按钮 */
+  .main-actions {
+    display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 8px;
+  }
+  .btn-schedule {
+    background: linear-gradient(135deg, #d9c6f0, #b89ae0);
+    color: #fff; box-shadow: 0 8px 18px -6px #b89ae0, inset 0 0 0 1.5px #eee4ff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    padding: 15px 18px; font-size: 1rem; font-weight: 800;
+    border-radius: 50px; border: none; cursor: pointer;
+    font-family: inherit;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: all 0.15s;
+  }
+  .btn-schedule:hover { transform: translateY(-2px); box-shadow: 0 12px 24px -6px #b89ae0, inset 0 0 0 1.5px #eee4ff; }
+  .btn-schedule:active { transform: translateY(2px); }
+
+  /* 底部 */
+  .bottom-bar { display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 14px; }
+
+  /* 模态框 */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(30, 60, 75, 0.45);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 18px; z-index: 1000;
+    visibility: hidden; opacity: 0; transition: 0.25s;
+  }
+  .modal-overlay.show { visibility: visible; opacity: 1; }
+  .modal-content {
+    background: linear-gradient(180deg, #fafdff 0%, #f0f8fa 100%);
+    max-width: 620px; width: 100%; max-height: 90vh;
+    border-radius: 36px; padding: 26px 24px;
+    box-shadow: 0 40px 80px -30px #1f3a44, inset 0 0 0 1.5px rgba(255, 255, 255, 0.9);
+    border: 1.5px solid var(--sea-200);
+    overflow-y: auto; position: relative;
+    animation: modalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes modalIn {
+    from { opacity: 0; transform: scale(0.94) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  .modal-content h2 {
+    color: var(--sea-700); margin-bottom: 16px; font-size: 1.5rem;
+    display: flex; align-items: center; gap: 9px;
+    padding-bottom: 12px; border-bottom: 2px dashed var(--sea-200); font-weight: 800;
+  }
+  .modal-content h3 {
+    color: var(--sea-700); margin: 18px 0 10px; font-size: 1rem;
+  }
+  .close-btn {
+    position: absolute; top: 18px; right: 20px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid var(--sea-100);
+    width: 34px; height: 34px; border-radius: 50%;
+    font-size: 1.3rem; cursor: pointer; color: var(--sea-500);
+    line-height: 1; display: flex; align-items: center; justify-content: center;
+    transition: 0.15s; font-family: inherit;
+    z-index: 10;
+  }
+  .close-btn:hover { background: var(--sea-100); color: var(--sea-700); }
+
+  .story-text {
+    font-size: 0.9rem; line-height: 1.85; color: var(--ink);
+    margin-bottom: 18px; white-space: pre-line;
+  }
+
+  /* 开场名字卡 */
+  .name-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 14px 0 12px; }
+  .name-card {
+    background: #fff; border: 1.5px solid var(--sea-100);
+    border-radius: 18px; padding: 12px 8px; text-align: center;
+    cursor: pointer; transition: all 0.15s;
+    box-shadow: 0 4px 12px -8px rgba(100, 150, 170, 0.3);
+  }
+  .name-card:hover { transform: translateY(-2px); box-shadow: 0 8px 16px -8px rgba(100, 150, 170, 0.4); }
+  .name-card.selected {
+    background: linear-gradient(135deg, #f0f8fa, #e0f0f5);
+    border-color: var(--sea-400);
+    box-shadow: 0 6px 16px -6px rgba(60, 140, 170, 0.5), inset 0 0 0 1.5px #fff;
+  }
+  .name-card .em { font-size: 1.6rem; }
+  .name-card .nm { font-weight: 800; color: var(--ink); font-size: 0.95rem; margin-top: 3px; }
+  .name-card .traits { font-size: 0.6rem; color: var(--ink-soft); margin-top: 3px; line-height: 1.3; }
+  .name-card .talent-tag {
+    display: inline-block; margin-top: 4px;
+    background: linear-gradient(135deg, #ffe8a8, #ffd878);
+    color: #6a4a10; font-size: 0.55rem; font-weight: 800;
+    padding: 2px 7px; border-radius: 20px;
+  }
+
+  .form-row { margin-top: 10px; }
+  .form-row label {
+    display: block; font-weight: 700; color: var(--sea-700);
+    font-size: 0.78rem; margin-bottom: 5px;
+  }
+  .form-row input[type="text"] {
+    width: 100%; padding: 11px 16px; border-radius: 40px;
+    border: 1.5px solid var(--sea-200); background: white;
+    font-size: 0.88rem; outline: none; color: var(--ink);
+    font-weight: 600; font-family: inherit;
+  }
+  .form-row input[type="text"]:focus { border-color: var(--sea-400); box-shadow: 0 0 0 3px #e0f0f5; }
+
+  .chip-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+  .chip {
+    background: #fff; border: 1.5px solid var(--sea-200);
+    border-radius: 30px; padding: 6px 12px; font-size: 0.75rem;
+    font-weight: 600; color: var(--sea-600); cursor: pointer;
+    transition: 0.15s; font-family: inherit;
+  }
+  .chip:hover { background: var(--sea-50); }
+  .chip.selected {
+    background: linear-gradient(135deg, var(--sea-300), var(--sea-500));
+    color: #fff; border-color: var(--sea-500);
+    box-shadow: 0 4px 10px -4px var(--sea-500);
+  }
+
+  /* 成就弹窗 */
+  .achievement-toast {
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px);
+    background: linear-gradient(135deg, #fff8e6, #ffefc8);
+    border: 2px solid var(--gold);
+    border-radius: 20px;
+    padding: 14px 24px;
+    box-shadow: 0 20px 40px -10px rgba(200, 160, 80, 0.5),
+                0 0 30px rgba(229, 185, 106, 0.4);
+    display: flex; align-items: center; gap: 12px;
+    z-index: 3000;
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .achievement-toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+  .achievement-toast .ach-icon { font-size: 2rem; }
+  .achievement-toast .ach-text { line-height: 1.35; }
+  .achievement-toast .ach-label { font-size: 0.6rem; color: var(--gold-dark); font-weight: 800; letter-spacing: 2px; }
+  .achievement-toast .ach-name { font-size: 1rem; font-weight: 800; color: #6a4a10; }
+
+  /* 浮字（修复：每行一个） */
+  .float-num {
+    position: fixed; font-weight: 800; font-size: 1rem;
+    pointer-events: none; z-index: 1500;
+    text-shadow: 0 2px 6px rgba(255,255,255,0.9), 0 1px 3px rgba(0,0,0,0.2);
+    white-space: nowrap;
+    transform: translateX(-50%);
+  }
+  @keyframes floatUpMulti {
+    0% { opacity: 0; transform: translateX(-50%) translateY(0) scale(0.8); }
+    20% { opacity: 1; transform: translateX(-50%) translateY(-8px) scale(1.1); }
+    100% { opacity: 0; transform: translateX(-50%) translateY(-40px) scale(1); }
+  }
+
+  /* 四季日程界面 */
+  .seasons-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+    margin-bottom: 16px;
+  }
+  .season-slot {
+    border-radius: 20px; padding: 12px 8px;
+    min-height: 110px;
+    display: flex; flex-direction: column; align-items: center;
+    border: 2px dashed rgba(255,255,255,0.9);
+    position: relative; overflow: hidden;
+    transition: all 0.2s;
+  }
+  .season-slot.spring { background: var(--spring); border-color: #c8e8c8; }
+  .season-slot.summer { background: var(--summer); border-color: #f5d89a; }
+  .season-slot.autumn { background: var(--autumn); border-color: #f5b89a; }
+  .season-slot.winter { background: var(--winter); border-color: #c8d8e8; }
+  .season-slot .s-icon {
+    font-size: 1.4rem; line-height: 1;
+  }
+  .season-slot .s-name {
+    font-size: 0.68rem; font-weight: 800; color: var(--ink);
+    margin-top: 2px;
+  }
+  .season-slot .s-content {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    margin-top: 6px; width: 100%;
+  }
+  .season-slot .s-empty {
+    font-size: 0.6rem; color: var(--ink-soft); font-style: italic;
+  }
+  .season-slot .s-filled {
+    text-align: center;
+  }
+  .season-slot .s-filled .s-emoji { font-size: 1.4rem; }
+  .season-slot .s-filled .s-label {
+    font-size: 0.65rem; font-weight: 700; color: var(--ink);
+    margin-top: 2px;
+  }
+  .season-slot .s-remove {
+    position: absolute; top: 4px; right: 4px;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: rgba(255,255,255,0.9); border: none;
+    color: #c05a72; font-size: 0.7rem; font-weight: 800;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    line-height: 1;
+  }
+  .season-slot .s-remove:hover { background: #ffe4ea; }
+
+  .schedule-list {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  }
+  .schedule-card {
+    background: #fff; border-radius: 16px; padding: 10px 12px;
+    border: 1.5px solid var(--sea-100);
+    box-shadow: 0 4px 12px -8px rgba(100, 150, 170, 0.3);
+    display: flex; align-items: center; gap: 10px;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .schedule-card:hover { transform: translateY(-1px); border-color: var(--sea-300); }
+  .schedule-card.disabled { opacity: 0.4; pointer-events: none; }
+  .schedule-card .sc-emoji { font-size: 1.5rem; flex-shrink: 0; }
+  .schedule-card .sc-info { flex: 1; min-width: 0; }
+  .schedule-card .sc-name { font-weight: 700; color: var(--ink); font-size: 0.83rem; }
+  .schedule-card .sc-effect { font-size: 0.63rem; color: var(--ink-soft); margin-top: 1px; line-height: 1.4; }
+  .schedule-card .sc-cost {
+    background: #fff8e6; color: var(--gold-dark);
+    font-size: 0.65rem; font-weight: 800;
+    padding: 2px 7px; border-radius: 12px;
+    border: 1px solid var(--sand-300);
+    white-space: nowrap;
+  }
+  .schedule-card .sc-cost.free {
+    background: #e0f0f5; color: var(--sea-600); border-color: var(--sea-200);
+  }
+  .schedule-card .sc-cost.insufficient {
+    background: #ffe4ea; color: #c05a72; border-color: #f8c4d0;
+  }
+
+  .schedule-actions {
+    display: flex; gap: 8px; margin-top: 16px;
+  }
+
+  /* 旅商界面 */
+  .merchant-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  }
+  .merchant-card {
+    background: #fff; border-radius: 18px; padding: 12px 14px;
+    border: 1.5px solid var(--sea-100);
+    box-shadow: 0 6px 16px -10px rgba(100, 150, 170, 0.35);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .merchant-card.rare {
+    border-color: var(--gold);
+    background: linear-gradient(135deg, #fffdf6, #fff9e8);
+  }
+  .merchant-card .mc-emoji { font-size: 1.7rem; flex-shrink: 0; }
+  .merchant-card .mc-info { flex: 1; min-width: 0; }
+  .merchant-card .mc-name { font-weight: 700; color: var(--ink); font-size: 0.82rem; }
+  .merchant-card .mc-effect { font-size: 0.63rem; color: var(--ink-soft); margin-top: 1px; }
+  .merchant-card .mc-rare-tag {
+    display: inline-block; background: var(--gold); color: #fff;
+    font-size: 0.55rem; font-weight: 800; padding: 1px 6px;
+    border-radius: 20px; margin-left: 4px;
+  }
+  .btn-buy {
+    background: var(--sea-400); border: none; border-radius: 30px;
+    padding: 6px 11px; font-weight: 700; color: white; font-size: 0.68rem;
+    cursor: pointer; box-shadow: 0 2px 6px -2px var(--sea-600);
+    transition: 0.06s; font-family: inherit; white-space: nowrap;
+  }
+  .btn-buy:disabled { opacity: 0.35; pointer-events: none; }
+
+  /* 图鉴 */
+  .gallery-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+  .gallery-item {
+    background: #fff; border-radius: 20px; padding: 13px;
+    display: flex; flex-direction: column; gap: 4px;
+    border: 1.5px solid var(--sea-100);
+    box-shadow: 0 4px 12px -8px rgba(100, 150, 170, 0.3);
+  }
+  .gallery-item.locked { opacity: 0.5; filter: grayscale(0.8); background: #f0f5f7; }
+  .gallery-emoji { font-size: 1.8rem; }
+  .gallery-name { font-weight: 800; color: var(--sea-700); font-size: 0.85rem; }
+  .gallery-desc { font-size: 0.68rem; color: var(--ink-soft); line-height: 1.4; }
+
+  /* 档案 */
+  .profile-header {
+    background: linear-gradient(135deg, #e0f0f5, #d0e8ef);
+    border-radius: 24px; padding: 18px; margin-bottom: 14px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .profile-avatar {
+    width: 68px; height: 68px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--sea-300), var(--sea-500));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem; flex-shrink: 0;
+    box-shadow: 0 8px 16px -8px var(--sea-600);
+  }
+  .profile-info { flex: 1; }
+  .profile-info .name { font-size: 1.1rem; font-weight: 800; color: var(--sea-700); }
+  .profile-info .sub { font-size: 0.72rem; color: var(--sea-600); margin-top: 2px; }
+
+  .profile-tabs {
+    display: flex; gap: 6px; margin-bottom: 12px;
+    background: linear-gradient(135deg, #e0f0f5, #d0e8ef);
+    border-radius: 16px; padding: 4px;
+  }
+  .profile-tab {
+    flex: 1; padding: 8px 0; border-radius: 12px; border: none;
+    background: transparent; font-weight: 700; font-size: 0.8rem;
+    color: var(--ink-soft); cursor: pointer; font-family: inherit;
+    transition: 0.15s;
+  }
+  .profile-tab.active { background: #fff; color: var(--sea-700); box-shadow: 0 3px 8px -3px rgba(60, 110, 130, 0.3); }
+
+  .profile-stats {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;
+    margin-bottom: 14px;
+  }
+  .profile-stat {
+    background: #fff; border-radius: 16px; padding: 12px 8px;
+    text-align: center;
+    border: 1.5px solid var(--sea-100);
+  }
+  .profile-stat .num {
+    font-size: 1.3rem; font-weight: 800; color: var(--sea-700);
+    line-height: 1;
+  }
+  .profile-stat .lbl {
+    font-size: 0.62rem; color: var(--ink-soft); font-weight: 600;
+    margin-top: 4px;
+  }
+
+  .past-kids {
+    display: flex; flex-direction: column; gap: 8px; margin-top: 8px;
+  }
+  .past-kid {
+    background: #fff; border-radius: 16px; padding: 10px 14px;
+    display: flex; align-items: center; gap: 10px;
+    border: 1.5px solid var(--sea-100);
+    box-shadow: 0 4px 10px -6px rgba(100, 150, 170, 0.25);
+  }
+  .past-kid .k-emoji { font-size: 1.5rem; }
+  .past-kid .k-info { flex: 1; min-width: 0; }
+  .past-kid .k-name { font-weight: 700; color: var(--ink); font-size: 0.85rem; }
+  .past-kid .k-meta { font-size: 0.65rem; color: var(--ink-soft); margin-top: 1px; }
+  .past-kid .k-ending { font-size: 0.72rem; font-weight: 800; color: var(--gold-dark); white-space: nowrap; }
+
+  .empty-state {
+    text-align: center; padding: 20px; color: var(--ink-soft);
+    font-size: 0.82rem; font-style: italic;
+  }
+
+  .danger-btn {
+    background: linear-gradient(135deg, #ffb5a0, #f58568);
+    color: #fff; box-shadow: 0 6px 14px -5px #f58568;
+    border: none; border-radius: 50px; padding: 11px 20px;
+    font-weight: 700; font-size: 0.85rem; cursor: pointer;
+    font-family: inherit; width: 100%; margin-top: 10px;
+  }
+
+  .guide-list { list-style: none; }
+  .guide-list li {
+    padding: 8px 0; border-bottom: 1px solid var(--sea-100);
+    font-size: 0.82rem; color: var(--ink); line-height: 1.5;
+  }
+  .guide-list li strong { color: var(--sea-700); }
+
+  /* 教程 */
+  .tutorial-step {
+    display: flex; gap: 12px; padding: 12px 0;
+    border-bottom: 1px dashed var(--sea-200);
+  }
+  .tutorial-step:last-child { border-bottom: none; }
+  .tutorial-step .t-num {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--sea-300), var(--sea-500));
+    color: #fff; font-weight: 800; font-size: 0.85rem;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .tutorial-step .t-text { font-size: 0.83rem; line-height: 1.55; color: var(--ink); }
+  .tutorial-step .t-text strong { color: var(--sea-700); }
+
+  /* 执行界面 */
+  .executing-panel {
+    text-align: center; padding: 20px 0;
+  }
+  .executing-season {
+    font-size: 3rem; line-height: 1;
+    margin-bottom: 10px;
+    animation: finaleFloat 2s ease-in-out infinite;
+  }
+  @keyframes finaleFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+  .executing-title {
+    font-size: 1.2rem; font-weight: 800; color: var(--sea-700);
+    margin-bottom: 6px;
+  }
+  .executing-desc {
+    font-size: 0.85rem; color: var(--ink-soft); line-height: 1.6;
+    margin-bottom: 14px;
+  }
+  .executing-progress {
+    height: 6px; background: var(--sea-100); border-radius: 3px;
+    overflow: hidden; margin: 14px auto; max-width: 240px;
+  }
+  .executing-progress > div {
+    height: 100%; background: linear-gradient(90deg, var(--sea-300), var(--sea-500));
+    border-radius: 3px; width: 0; transition: width 1s linear;
+  }
+  .executing-avatar {
+    font-size: 4rem; margin: 10px 0;
+    animation: breathe 2s ease-in-out infinite;
+  }
+
+  /* 信件 */
+  .letter-paper {
+    background: linear-gradient(180deg, #fafdff 0%, #f0f8fa 100%);
+    border: 2px solid var(--sea-200);
+    border-radius: 20px;
+    padding: 22px 24px;
+    text-align: left;
+    font-size: 0.86rem;
+    line-height: 1.9;
+    color: var(--ink);
+    white-space: pre-line;
+    box-shadow: inset 0 0 30px rgba(140, 200, 220, 0.2);
+    position: relative;
+    font-family: 'Courier New', 'STKaiti', 'KaiTi', serif;
+    max-height: 50vh; overflow-y: auto;
+  }
+  .letter-signature {
+    text-align: right; margin-top: 18px;
+    font-weight: 700; color: var(--sea-600); font-size: 0.9rem;
+  }
+
+  /* 结局 */
+  .finale-stage { text-align: center; padding: 6px 0; }
+  .finale-emoji {
+    font-size: 4.5rem;
+    filter: drop-shadow(0 8px 16px rgba(60, 110, 130, 0.35));
+    animation: finaleFloat 3s ease-in-out infinite;
+  }
+  .finale-name {
+    font-size: 1.9rem; font-weight: 800;
+    color: var(--sea-700); margin: 8px 0 2px;
+    letter-spacing: 2px;
+  }
+  .finale-sub {
+    color: var(--sea-500); font-size: 0.72rem;
+    letter-spacing: 3px; text-transform: uppercase; margin-bottom: 14px;
+  }
+  .finale-story {
+    background: #fafdff;
+    border: 1px solid var(--sea-200);
+    border-radius: 22px;
+    padding: 18px 20px;
+    margin: 14px 0;
+    text-align: left;
+    font-size: 0.86rem;
+    line-height: 1.9;
+    color: var(--ink);
+    max-height: 320px;
+    overflow-y: auto;
+    white-space: pre-line;
+  }
+  .flow-card {
+    background: linear-gradient(135deg, #f0f8fa, #e0f0f5);
+    border: 1.5px solid var(--sea-200);
+    border-radius: 18px; padding: 14px 16px;
+    margin: 10px 0; font-size: 0.82rem; line-height: 1.7;
+    color: var(--sea-700);
+  }
+  .flow-card .title { font-weight: 800; margin-bottom: 4px; color: var(--sea-700); }
+
+  .hidden { display: none !important; }
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: var(--sea-50); border-radius: 10px; }
+  ::-webkit-scrollbar-thumb { background: var(--sea-300); border-radius: 10px; }
+
+  @media (max-width: 560px) {
+    .app-container { padding: 16px 14px 20px; border-radius: 32px; }
+    .daughter-visual { width: 100px; height: 130px; }
+    .daughter-avatar { font-size: 4.4rem; }
+    .daughter-speech { font-size: 0.78rem; padding: 12px 14px; }
+    .stats-row { grid-template-columns: repeat(5, 1fr); gap: 4px; }
+    .stat-pill .num { font-size: 1rem; }
+    .focus-box { flex-direction: column; gap: 12px; padding: 14px; }
+    .focus-disc-wrap { width: 150px; height: 150px; }
+    .seasons-grid { grid-template-columns: repeat(2, 1fr); }
+    .schedule-list { grid-template-columns: 1fr; }
+    .name-grid { grid-template-columns: repeat(2, 1fr); }
+    .gallery-grid { grid-template-columns: 1fr 1fr; }
+    .profile-stats { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app-container" id="appContainer">
+
+  <div class="top-bar">
+    <div class="game-title">🌊 潮汐的守望 <span class="ver">4.2</span></div>
+    <div class="top-right-group">
+      <div class="progress-badge">
+        <span class="icon">🌊</span>
+        <div>
+          <div class="main" id="progressLabel">第 1 / 10 年</div>
+          <div class="sub" id="progressSub">8岁 · 初见</div>
+        </div>
+      </div>
+      <button class="icon-btn" id="profileBtn" title="我的档案">
+        📋<span class="mini-badge hidden" id="profileBadge">0</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="main-panel hidden" id="mainPanel">
+
+    <div class="daughter-stage" id="daughterStage">
+      <div class="stage-bg"></div>
+      <div class="tide-deco">
+        <svg viewBox="0 0 400 30" preserveAspectRatio="none">
+          <path d="M0,15 Q50,5 100,15 T200,15 T300,15 T400,15 L400,30 L0,30 Z" fill="rgba(90,174,196,0.2)"/>
+          <path d="M0,20 Q50,10 100,20 T200,20 T300,20 T400,20 L400,30 L0,30 Z" fill="rgba(90,174,196,0.15)"/>
+        </svg>
+      </div>
+      <div class="stage-content">
+        <div class="daughter-visual">
+          <div class="daughter-status-tag" id="statusTag">心情不错</div>
+          <div class="daughter-avatar" id="daughterAvatar">👧🏻</div>
+          <div class="daughter-shadow"></div>
+        </div>
+        <div style="flex:1; min-width: 0;">
+          <div class="daughter-speech" id="daughterSpeech">
+            <span class="text" id="speechText">海风的味道，好舒服～</span>
+          </div>
+          <div class="daughter-traits" id="daughterTraits"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-pill" id="pillInt">
+        <span class="icon">🧠</span>
+        <div class="num" id="intVal">0</div>
+        <div class="lbl">智力</div>
+        <div class="stat-bar"><div id="intBar" style="width:0%"></div></div>
+      </div>
+      <div class="stat-pill" id="pillCharm">
+        <span class="icon">✨</span>
+        <div class="num" id="charmVal">0</div>
+        <div class="lbl">魅力</div>
+        <div class="stat-bar"><div id="charmBar" style="width:0%"></div></div>
+      </div>
+      <div class="stat-pill stamina" id="pillStamina">
+        <span class="icon">💪</span>
+        <div class="num" id="staminaVal">60</div>
+        <div class="lbl">体力</div>
+        <div class="stat-bar"><div id="staminaBar" style="width:60%"></div></div>
+      </div>
+      <div class="stat-pill mood" id="pillMood">
+        <span class="icon">💙</span>
+        <div class="num" id="moodVal">60</div>
+        <div class="lbl">心情</div>
+        <div class="stat-bar"><div id="moodBar" style="width:60%"></div></div>
+      </div>
+      <div class="stat-pill trust" id="pillTrust">
+        <span class="icon">💖</span>
+        <div class="num" id="trustVal">50</div>
+        <div class="lbl">羁绊</div>
+        <div class="stat-bar"><div id="trustBar" style="width:50%"></div></div>
+      </div>
+    </div>
+
+    <div class="focus-box">
+      <div class="focus-disc-wrap">
+        <canvas id="timerCanvas" width="320" height="320"></canvas>
+        <div class="focus-disc-info">
+          <div class="focus-disc-time" id="focusTime">25</div>
+          <div class="focus-disc-hint" id="focusHint">分钟</div>
+        </div>
+      </div>
+      <div class="focus-info-col">
+        <div class="focus-preview">
+          <span class="lbl">本次专注</span>
+          <span class="val"><span id="sessionGold">0</span> 🐚</span>
+        </div>
+        <div class="focus-preview" style="background:linear-gradient(135deg,#f0f8fa,#e0f0f5); border-color:var(--sea-200);">
+          <span class="lbl" style="color:var(--sea-600);">累计贝壳</span>
+          <span class="val" style="color:var(--sea-700);"><span id="totalGold">0</span> 🐚</span>
+        </div>
+        <div class="focus-companion" id="focusCompanion" style="display:none;">
+          <span class="dot"></span>
+          <span id="companionText">女儿安静地陪着你…</span>
+        </div>
+        <div class="focus-buttons">
+          <button class="btn btn-primary" id="startPauseBtn">▶ 开始专注</button>
+          <button class="btn" id="resetTimerBtn">↺ 重置</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="main-actions">
+      <button class="btn-schedule" id="openScheduleBtn">📅 安排这一年的日程</button>
+    </div>
+
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-content" id="modalContent"></div>
+</div>
+
+<div class="achievement-toast" id="achievementToast">
+  <div class="ach-icon" id="achIcon">🏆</div>
+  <div class="ach-text">
+    <div class="ach-label">ACHIEVEMENT</div>
+    <div class="ach-name" id="achName">成就达成</div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   潮汐的守望 4.2 — 四季之约
+   核心改动：
+   - 属性：智力/魅力/体力/心情/羁绊
+   - 日程：春夏秋冬 4 次安排
+   - 专注：1 分钟 = 1 币
+   - 偶发：25% 触发，已触发不复现
+   ========================================================= */
+
+/* ==================== 女儿档案库 ==================== */
+const DAUGHTER_PROFILES = {
+  '汐月': { emoji: '🌙', personality: '安静温柔', hobby: '看海·听浪', talent: '文艺', talentBonus: 'literature', tags: ['温柔', '内敛', '有灵气'],
+    catchphrases: {
+      happy: ['今天的海，是淡蓝色的。', '谢谢你，我一直记得。', '我觉得很安心。'],
+      normal: ['我在想，海的那边是什么。', '今天的风，很温柔。', '我会好好长大的。'],
+      sad: ['……我想一个人待一会儿。', '是不是我做得不够好？', '我想看海。'],
+    } },
+  '海音': { emoji: '🐚', personality: '清雅脱俗', hobby: '唱歌·收集贝壳', talent: '音乐', talentBonus: 'music', tags: ['敏感', '有艺术天赋', '爱幻想'],
+    catchphrases: {
+      happy: ['我捡到一个会唱歌的贝壳！', '我给你哼一段海浪的旋律。', '谢谢你懂我。'],
+      normal: ['我在想一首关于海的歌。', '你喜欢什么颜色？', '今天的潮声特别好听。'],
+      sad: ['我不太开心……但我会好的。', '是不是我不够好？', '让我唱一会儿歌吧。'],
+    } },
+  '屿风': { emoji: '🌊', personality: '生机勃勃', hobby: '探险·爬礁石', talent: '科学', talentBonus: 'science', tags: ['活泼', '勇敢', '好奇心强'],
+    catchphrases: {
+      happy: ['我今天爬到最高的礁石上了！', '耶！我做到了！', '我们去探险吧！'],
+      normal: ['为什么潮水会涨落？', '海底真的有城市吗？', '我今天又学到了新东西！'],
+      sad: ['哼，我不开心。', '为什么大人们都不懂？', '我想一个人静一静。'],
+    } },
+  '星落': { emoji: '⭐', personality: '安静温柔', hobby: '观星·写日记', talent: '天文', talentBonus: 'literature', tags: ['温柔', '爱幻想', '善解人意'],
+    catchphrases: {
+      happy: ['今晚的星星像碎钻一样。', '我给你读我写的日记吧。', '我觉得心里暖暖的。'],
+      normal: ['我在想，星星会不会落下。', '你听过流星的声音吗？', '我做了个很美的梦。'],
+      sad: ['……今天不想说话。', '抱抱我好吗？', '我想一个人看会儿星星。'],
+    } },
+  '云舟': { emoji: '☁️', personality: '自由随性', hobby: '画画·编故事', talent: '绘画', talentBonus: 'art', tags: ['爱幻想', '自由', '有创意'],
+    catchphrases: {
+      happy: ['我刚刚画了一艘会飞的船！', '云朵像棉花糖一样～', '我好开心呀！'],
+      normal: ['你说云会去哪里呢？', '我编了一个海怪的故事。', '我想去很远的地方看看。'],
+      sad: ['……我觉得有点孤单。', '为什么世界这么吵？', '我想变成一朵云。'],
+    } },
+  '朝阳': { emoji: '☀️', personality: '活泼开朗', hobby: '奔跑·交朋友', talent: '社交', talentBonus: 'etiquette', tags: ['活泼', '外向', '有感染力'],
+    catchphrases: {
+      happy: ['啦啦啦～今天超开心！', '我交到新朋友啦！', '我给你跳个舞好不好？'],
+      normal: ['今天要去哪里玩呀？', '你小时候也这么爱笑吗？', '我想唱首歌给你听！'],
+      sad: ['……我不想笑。', '我是不是做错了？', '为什么没人懂我？'],
+    } },
+};
+
+const TALENT_OPTIONS = [
+  { id: 'literature', name: '文学', emoji: '📚' },
+  { id: 'music', name: '音乐', emoji: '🎵' },
+  { id: 'science', name: '科学', emoji: '🔬' },
+  { id: 'art', name: '美术', emoji: '🎨' },
+  { id: 'etiquette', name: '礼仪', emoji: '🎀' },
+  { id: 'sports', name: '运动', emoji: '⚽' },
+];
+const PERSONALITY_OPTIONS = ['安静温柔', '清雅脱俗', '生机勃勃', '自由随性', '活泼开朗', '独立坚强'];
+const HOBBY_OPTIONS = ['看海·听浪', '唱歌·收集贝壳', '探险·爬礁石', '观星·写日记', '画画·编故事', '奔跑·交朋友'];
+const EMOJI_OPTIONS = ['👧🏻', '👧', '🧒', '🌙', '🐚', '🌊', '⭐', '☁️', '☀️', '🍀'];
+
+/* ==================== 状态 ==================== */
+const state = {
+  name: '汐月',
+  playerTitle: '妈妈',
+  profile: DAUGHTER_PROFILES['汐月'],
+  // 5 个属性
+  intelligence: 0,   // 智力
+  charm: 0,          // 魅力
+  stamina: 60,       // 体力
+  mood: 60,          // 心情
+  trust: 50,         // 羁绊
+  money: 0,          // 贝壳币
+  age: 8,
+  year: 1,
+  maxYears: 10,
+  focusMinutes: 25,
+  // 四季日程：null 或日程 id
+  schedule: { spring: null, summer: null, autumn: null, winter: null },
+  // 技能（保留，但不再显示在 UI）
+  skills: { literature: 0, music: 0, science: 0, art: 0, etiquette: 0, sports: 0 },
+  choices: [],
+  // 已触发过的事件 ID（绝不重复）
+  seenEvents: new Set(),
+  flags: {
+    magiPath: 0, royalPath: 0, divinePath: 0, artistPath: 0,
+    scholarPath: 0, kindness: 0, ambition: 0, empathy: 0, wisdom: 0, courage: 0,
+  },
+  caps: { int: 200, charm: 200, stamina: 100, mood: 100, trust: 100, money: 1000 },
+  // 心情过低已扣羁绊计数（防止无限扣）
+  lowMoodWarned: false,
+};
+
+const extraStats = {
+  focusCount: 0, purchaseCount: 0, eventsTriggered: 0,
+  totalFocusSeconds: 0, choicesMade: 0, letterRead: false,
+  merchantVisits: 0,
+};
+
+const profile = {
+  kidsRaised: [],
+  totalFocusSeconds: 0,
+  totalEndings: new Set(),
+  totalAchievements: new Set(),
+  totalMemories: new Set(),
+  playerName: '玩家',
+};
+function loadProfile() {
+  try {
+    const raw = localStorage.getItem('tide_profile_v42');
+    if (raw) {
+      const d = JSON.parse(raw);
+      profile.kidsRaised = d.kidsRaised || [];
+      profile.totalFocusSeconds = d.totalFocusSeconds || 0;
+      profile.totalEndings = new Set(d.totalEndings || []);
+      profile.totalAchievements = new Set(d.totalAchievements || []);
+      profile.totalMemories = new Set(d.totalMemories || []);
+      profile.playerName = d.playerName || '玩家';
+    }
+  } catch(e) { console.warn('profile load fail', e); }
+}
+function saveProfile() {
+  try {
+    localStorage.setItem('tide_profile_v42', JSON.stringify({
+      kidsRaised: profile.kidsRaised,
+      totalFocusSeconds: profile.totalFocusSeconds,
+      totalEndings: [...profile.totalEndings],
+      totalAchievements: [...profile.totalAchievements],
+      totalMemories: [...profile.totalMemories],
+      playerName: profile.playerName,
+    }));
+  } catch(e) { console.warn('profile save fail', e); }
+}
+
+/* ==================== 专注计时 ==================== */
+let timerInterval = null;
+let isTimerRunning = false;
+let focusElapsedSec = 0;
+let lastTickTime = 0;
+let sessionRewarded = false;
+let canvas, ctx;
+const CX = 160, CY = 160, R = 128;
+const FOCUS_MIN = 5;
+const FOCUS_MAX = 60;
+let discDragging = false;
+
+function angleToMinutes(angle) {
+  let a = angle + Math.PI / 2;
+  if (a < 0) a += Math.PI * 2;
+  const ratio = a / (Math.PI * 2);
+  return Math.round(FOCUS_MIN + ratio * (FOCUS_MAX - FOCUS_MIN));
+}
+function minutesToAngle(min) {
+  const ratio = (min - FOCUS_MIN) / (FOCUS_MAX - FOCUS_MIN);
+  return -Math.PI / 2 + ratio * Math.PI * 2;
+}
+
+/* ==================== 回忆库 ==================== */
+const MEMORY_POOL = {
+  firstFocus: { icon: '🐚', title: '第一枚贝壳', text: '你第一次专注时，小小的她悄悄搬来一张小凳子，坐在窗边，和你一起看着海。\n\n灯光很暖，海风很慢。' },
+  firstLesson: { icon: '📖', title: '窗边的背影', text: '第一次送她去上课，你站在门外，透过窗看她。\n\n她坐得很端正，小手指认真地在桌上比划。' },
+  lowMood: { icon: '🌧️', title: '涨潮的雨', text: '她一个人坐在礁石上，抱着膝盖，不说话。\n\n你走过去，她轻声问："我是不是让你失望了？"' },
+  highMood: { icon: '☀️', title: '满屋子的光', text: '她今天特别开心，满屋子跑来跑去，像一只停不下来的海鸟。' },
+  year3: { icon: '🌿', title: '第三个年头', text: '不知不觉，她已经在你身边待了三年。\n\n她的个子长高了一些，说话也更有条理了。' },
+  year5: { icon: '🌸', title: '第五个年头', text: '她十岁了。\n\n有一天她突然问你："我小时候是什么样子的？"' },
+  year7: { icon: '🌳', title: '第七个年头', text: '她十二岁了，开始有了自己的小秘密。' },
+  year9: { icon: '🌅', title: '第九个年头', text: '她十四岁了。她的个子快赶上你了。' },
+  beforeEnding: { icon: '🌌', title: '最后一晚', text: '今天晚上，她特别安静。\n\n她抱着你送她的所有礼物，一样一样地摆好。\n\n"我要长大了。"她说。' },
+  merchantFirst: { icon: '🎒', title: '旅行商人', text: '第三年的秋天，一个背着巨大包裹的商人来到了潮汐镇。\n\n他说，他每三年会来一次。' },
+  magiAwaken: { icon: '🔮', title: '魔法的觉醒', text: '那天夜里，她房间里的烛火突然全部熄灭了。\n\n你冲进去，看见她坐在床上，眼睛发着微弱的光。' },
+  royalBlood: { icon: '👑', title: '血脉的秘密', text: '信上写着：这个孩子，是深海中一位古代王族的后裔。' },
+  divineSpark: { icon: '✨', title: '神性的微光', text: '她赤脚走到干涸的河床上，蹲下身，双手合十。\n\n河水重新开始流动。' },
+};
+
+/* ==================== 日程库（四季安排用） ==================== */
+const SCHEDULES = [
+  // 学习类
+  { id: 'literature', name: '文学课', emoji: '📖', cost: 6, skill: 'literature', effect: { intelligence: 8, mood: -3, stamina: -10 }, desc: '智力+8 心情-3 体力-10' },
+  { id: 'music', name: '音乐课', emoji: '🎵', cost: 6, skill: 'music', effect: { charm: 8, mood: 2, stamina: -10 }, desc: '魅力+8 心情+2 体力-10' },
+  { id: 'science', name: '科学课', emoji: '🔬', cost: 7, skill: 'science', effect: { intelligence: 9, mood: -3, stamina: -10 }, desc: '智力+9 心情-3 体力-10' },
+  { id: 'art', name: '美术课', emoji: '🎨', cost: 5, skill: 'art', effect: { charm: 5, intelligence: 3, mood: 3, stamina: -8 }, desc: '魅力+5 智力+3 心情+3 体力-8' },
+  { id: 'etiquette', name: '礼仪课', emoji: '🎀', cost: 5, skill: 'etiquette', effect: { charm: 6, mood: 2, stamina: -8 }, desc: '魅力+6 心情+2 体力-8' },
+  // 休闲类
+  { id: 'sports', name: '海边奔跑', emoji: '⚽', cost: 2, skill: 'sports', effect: { mood: 10, stamina: -5, charm: 2 }, desc: '心情+10 魅力+2 体力-5' },
+  { id: 'picnic', name: '亲子野餐', emoji: '🧺', cost: 3, effect: { mood: 10, trust: 8, stamina: -3 }, desc: '心情+10 羁绊+8 体力-3' },
+  { id: 'read', name: '一起读书', emoji: '📚', cost: 3, effect: { intelligence: 5, mood: 4, trust: 6, stamina: -5 }, desc: '智力+5 心情+4 羁绊+6 体力-5' },
+  { id: 'talk', name: '深夜长谈', emoji: '🌙', cost: 2, effect: { mood: 6, trust: 10, stamina: -3 }, desc: '心情+6 羁绊+10 体力-3' },
+  // 休息
+  { id: 'rest', name: '在家休息', emoji: '💤', cost: 0, effect: { mood: 5, stamina: 20 }, desc: '心情+5 体力+20' },
+  { id: 'sleep', name: '早早睡觉', emoji: '🛏️', cost: 0, effect: { mood: 3, stamina: 30 }, desc: '心情+3 体力+30' },
+];
+
+/* ==================== 旅行商人 ==================== */
+const MERCHANT_ITEMS = [
+  { id: 'flower', name: '海边的花', emoji: '🌼', cost: 4, effect: { mood: 12, trust: 3 }, desc: '心情+12 羁绊+3' },
+  { id: 'cake', name: '海盐蛋糕', emoji: '🍰', cost: 6, effect: { mood: 16, stamina: 10 }, desc: '心情+16 体力+10' },
+  { id: 'book', name: '故事书', emoji: '📖', cost: 10, effect: { intelligence: 9, mood: 5 }, desc: '智力+9 心情+5' },
+  { id: 'dress', name: '水蓝裙子', emoji: '👗', cost: 12, effect: { charm: 11, mood: 8 }, desc: '魅力+11 心情+8' },
+  { id: 'shell', name: '珍珠贝壳', emoji: '🐚', cost: 14, effect: { charm: 8, trust: 8, mood: 5 }, desc: '魅力+8 羁绊+8 心情+5' },
+  { id: 'musicbox', name: '会唱歌的音乐盒', emoji: '🎶', cost: 20, effect: { mood: 18, charm: 6 }, desc: '心情+18 魅力+6', rare: true },
+  { id: 'amulet', name: '深海护符', emoji: '🔮', cost: 25, effect: { charm: 10, trust: 8, mood: 10 }, desc: '魅力+10 羁绊+8 心情+10', rare: true, flag: { magiPath: 2 } },
+  { id: 'scroll', name: '古老卷轴', emoji: '📜', cost: 28, effect: { intelligence: 16, mood: 5 }, desc: '智力+16 心情+5', rare: true },
+];
+
+/* ==================== 偶发事件库（不重复触发） ==================== */
+const RANDOM_EVENTS = [
+  { id: 'r1', name: '捡到贝壳币', emoji: '🐚', desc: '她在海边捡到几枚亮晶晶的贝壳币。', effect: { money: 15, mood: 3 }, type: 'good' },
+  { id: 'r2', name: '朋友的礼物', emoji: '🎁', desc: '好朋友送了她一本精美的画册。', effect: { mood: 6, charm: 2 }, type: 'good' },
+  { id: 'r3', name: '雨天读书', emoji: '🌧️', desc: '下雨天不能出门，她读了一本有趣的故事书。', effect: { intelligence: 5, mood: 2 }, type: 'good' },
+  { id: 'r4', name: '丢失的贝壳', emoji: '💔', desc: '她最喜欢的贝壳找不到了，难过了一整天。', effect: { mood: -8 }, type: 'bad' },
+  { id: 'r5', name: '海边舞会', emoji: '🪩', desc: '镇上举办了一场舞会，她跳得很开心。', effect: { charm: 6, mood: 5 }, type: 'good' },
+  { id: 'r6', name: '学堂竞赛', emoji: '🏆', desc: '她在学堂竞赛中获得了优异的成绩！', effect: { intelligence: 7, mood: 4 }, type: 'good' },
+  { id: 'r7', name: '做了噩梦', emoji: '😰', desc: '她半夜做了噩梦，哭着跑到你房间。', effect: { mood: -6, trust: 5 }, type: 'bad' },
+  { id: 'r8', name: '帮助老人', emoji: '👵', desc: '她在路上帮助了一位迷路的老奶奶。', effect: { charm: 4, mood: 4, trust: 3 }, type: 'good' },
+  { id: 'r9', name: '新爱好', emoji: '🎨', desc: '她突然对画画产生了浓厚的兴趣。', effect: { charm: 4, mood: 3 }, type: 'good' },
+  { id: 'r10', name: '弄坏玩具', emoji: '🧸', desc: '她不小心弄坏了一个心爱的玩具。', effect: { mood: -5, trust: -2 }, type: 'bad' },
+  { id: 'r11', name: '海边落日', emoji: '🌅', desc: '你们一起在海边看了落日。', effect: { mood: 8, trust: 4 }, type: 'good' },
+  { id: 'r12', name: '学会游泳', emoji: '🏊', desc: '她终于学会了游泳！', effect: { mood: 7, stamina: 10, charm: 3 }, type: 'good' },
+  { id: 'r13', name: '感冒了', emoji: '🤒', desc: '她着凉感冒了，需要休息。', effect: { mood: -5, stamina: -10, trust: 3 }, type: 'bad' },
+  { id: 'r14', name: '收到信', emoji: '💌', desc: '远方的笔友给她写了一封信。', effect: { mood: 6, intelligence: 3 }, type: 'good' },
+  { id: 'r15', name: '被先生表扬', emoji: '🌟', desc: '先生在全班面前表扬了她。', effect: { mood: 8, intelligence: 4, trust: 1 }, type: 'good' },
+  { id: 'r16', name: '和好朋友吵架', emoji: '💢', desc: '她和小鱼闹别扭了。', effect: { mood: -7, trust: -3 }, type: 'bad' },
+  { id: 'r17', name: '捡到海玻璃', emoji: '🔮', desc: '她在沙滩上捡到一块打磨光滑的海玻璃。', effect: { mood: 5, charm: 3 }, type: 'good' },
+  { id: 'r18', name: '学会骑单车', emoji: '🚲', desc: '她学会了骑单车，开心得转圈。', effect: { mood: 8, stamina: 10 }, type: 'good' },
+  { id: 'r19', name: '夜里失眠', emoji: '🌙', desc: '她因为担心出海的事，失眠了。', effect: { mood: -6, stamina: -10, trust: 2 }, type: 'bad' },
+  { id: 'r20', name: '收到情书', emoji: '💕', desc: '班上有个男孩偷偷给她塞了情书。', effect: { mood: 6, charm: 4 }, type: 'good' },
+  { id: 'r21', name: '画画获奖', emoji: '🖼️', desc: '她的画作在镇上展出并获奖了！', effect: { charm: 6, mood: 6 }, type: 'good' },
+  { id: 'r22', name: '打碎花瓶', emoji: '🏺', desc: '她不小心打碎了家里的花瓶。', effect: { mood: -5, trust: -1 }, type: 'bad' },
+  { id: 'r23', name: '看星星', emoji: '⭐', desc: '你们躺在屋顶看了一晚上的星星。', effect: { mood: 8, trust: 5, stamina: -5 }, type: 'good' },
+  { id: 'r24', name: '写日记', emoji: '📓', desc: '她开始写日记，记录每天的小事。', effect: { intelligence: 4, mood: 3 }, type: 'good' },
+  { id: 'r25', name: '鞋子破了', emoji: '👟', desc: '她跑来跑去，把鞋子跑破了。', effect: { mood: -3, money: -5 }, type: 'bad' },
+  { id: 'r26', name: '遇见海豚', emoji: '🐬', desc: '她在海边遇见了一群海豚。', effect: { mood: 10, charm: 3, trust: 2 }, type: 'good' },
+  { id: 'r27', name: '生病了', emoji: '🤧', desc: '她发烧了，你守了她一夜。', effect: { mood: -6, stamina: -15, trust: 6 }, type: 'bad' },
+  { id: 'r28', name: '读了冒险故事', emoji: '📖', desc: '她读了一本冒险故事，梦想着远方。', effect: { intelligence: 4, mood: 5, ambition: 1 }, type: 'good' },
+  { id: 'r29', name: '帮助小猫', emoji: '🐱', desc: '她在巷子里救了一只受伤的小猫。', effect: { mood: 7, charm: 2, trust: 2 }, type: 'good' },
+  { id: 'r30', name: '梦到海', emoji: '🌊', desc: '她梦见自己变成了海的一部分。', effect: { mood: 5, charm: 3 }, type: 'good' },
+  { id: 'r31', name: '丢了钱', emoji: '💸', desc: '她弄丢了你给的零用钱。', effect: { mood: -5, money: -10 }, type: 'bad' },
+  { id: 'r32', name: '发现古老卷轴', emoji: '📜', desc: '她在海边洞穴发现了一卷古老的卷轴。', effect: { intelligence: 8, mood: 5 }, type: 'good' },
+];
+
+/* ==================== 选择事件库（有分支，不重复触发） ==================== */
+const CHOICE_EVENTS = [
+  {
+    id: 'bully', emoji: '😢', title: '她被欺负了', minAge: 9,
+    text: '今天她从学堂回来，眼睛红红的。\n\n你问了好久，她才说：班上有几个孩子嘲笑她总是看着海发呆。\n\n她低着头，小声问："我是不是很奇怪？"',
+    choices: [
+      { id: 'bully_a', title: '"你不奇怪，你只是比他们更早听见海。"', desc: '告诉她，与众不同是一种天赋。', effect: { mood: 8, trust: 10, charm: 3 }, reaction: '她抬头看着你，眼睛慢慢亮了起来。', flags: { courage: 1, empathy: 1 } },
+      { id: 'bully_b', title: '"下次再有人嘲笑你，就大声说不。"', desc: '教她保护自己。', effect: { mood: 5, trust: 6, charm: 4 }, reaction: '她认真地点头，第二天真的这么做了。', flags: { courage: 2 } },
+      { id: 'bully_c', title: '"我去找先生谈谈。"', desc: '你决定亲自出面。', effect: { mood: 10, trust: 4 }, reaction: '先生批评了那几个孩子。她看着你，眼里有一种安心。', flags: { kindness: 1 } },
+    ],
+  },
+  {
+    id: 'lie', emoji: '🤥', title: '她撒谎了', minAge: 10,
+    text: '你发现她偷偷把打碎的贝壳藏在了床底下。\n\n你问她的时候，她摇摇头说"不是我"。\n\n但她的耳朵红了。',
+    choices: [
+      { id: 'lie_a', title: '"说实话不会挨骂，但撒谎会让我难过。"', desc: '温和地引导她。', effect: { mood: -3, trust: 12, intelligence: 4 }, reaction: '她哭了，抱着你说对不起。', flags: { wisdom: 1, empathy: 1 } },
+      { id: 'lie_b', title: '"撒谎是错的！"', desc: '严厉地批评她。', effect: { mood: -10, trust: -5 }, reaction: '她吓得缩成一团。', flags: {} },
+      { id: 'lie_c', title: '假装没发现', desc: '把这件事轻轻带过。', effect: { mood: 2, trust: -3 }, reaction: '她松了口气。但你知道，她学会了对你隐瞒。', flags: {} },
+    ],
+  },
+  {
+    id: 'dream', emoji: '💭', title: '她的梦想', minAge: 12,
+    text: '晚上睡觉前，她突然问你：\n\n"我长大以后要做什么呀？"\n\n"阿潮说他想当船长，小鱼说她想当画师……那我呢？"',
+    choices: [
+      { id: 'dream_a', title: '"你想做什么都可以。"', desc: '让她自由选择。', effect: { mood: 12, trust: 10, charm: 3 }, reaction: '她想了想，开心地说："那我要做能让你骄傲的人！"', flags: { empathy: 2 } },
+      { id: 'dream_b', title: '"做一个能改变世界的人。"', desc: '给她一个远大的志向。', effect: { intelligence: 6, mood: 2, trust: 4 }, reaction: '她认真地点头，眼睛里有光。', flags: { ambition: 3, wisdom: 1 } },
+      { id: 'dream_c', title: '"做一个快乐的人。"', desc: '告诉她快乐最重要。', effect: { mood: 15, trust: 8 }, reaction: '她笑了，说："好呀！那我现在就很快乐！"', flags: { kindness: 2 } },
+    ],
+  },
+  {
+    id: 'friend', emoji: '🤝', title: '海边的朋友', minAge: 13,
+    text: '她带回来一个女孩，说这是她新交的朋友。\n\n"可以让小鱼在我们家吃饭吗？"\n\n但你今晚本来打算陪她读书的。',
+    choices: [
+      { id: 'friend_a', title: '欢迎朋友', desc: '开心地招待小鱼。', effect: { mood: 10, charm: 6, trust: 6 }, reaction: '两个小家伙在餐桌旁聊个不停。', flags: { kindness: 2, empathy: 1 } },
+      { id: 'friend_b', title: '和女儿商量', desc: '告诉她今晚有别的安排。', effect: { mood: -3, trust: 6, intelligence: 4 }, reaction: '她有点失望，但还是点了点头。', flags: { wisdom: 2 } },
+      { id: 'friend_c', title: '让她们自己玩', desc: '你去忙自己的事。', effect: { mood: 4, charm: 2 }, reaction: '她们在房间里玩得很开心。', flags: {} },
+    ],
+  },
+  {
+    id: 'tide', emoji: '🌊', title: '潮汐的预言', minAge: 14,
+    text: '镇上的老人说，18岁那年出海的孩子，有的再也没有回来。\n\n她听到了，晚上悄悄问你："如果我出海了，你会想我吗？"',
+    choices: [
+      { id: 'tide_a', title: '"我会一直等你。"', desc: '给她一个承诺。', effect: { mood: 10, trust: 12 }, reaction: '她扑进你怀里，小声说："那我一定会回来的。"', flags: { empathy: 3, kindness: 1 } },
+      { id: 'tide_b', title: '"你会找到自己的路。"', desc: '鼓励她勇敢。', effect: { mood: 6, trust: 6, charm: 5 }, reaction: '她认真地点点头，眼里有一种你看不太懂的光。', flags: { courage: 3, ambition: 1 } },
+      { id: 'tide_c', title: '"你可以不去。"', desc: '试图保护她。', effect: { mood: -2, trust: -3, intelligence: 5 }, reaction: '她沉默了一会儿，然后说："我想去看看。"', flags: { wisdom: 2 } },
+    ],
+  },
+  {
+    id: 'moneyFound', emoji: '🐚', title: '捡到贝壳币', minAge: 11,
+    text: '她放学回家，兴奋地举起一个小布袋：\n\n"我在路上捡到了好多贝壳币！"\n\n她眼睛亮晶晶的，等你夸她。',
+    choices: [
+      { id: 'money_a', title: '"丢钱的人一定很着急。"', desc: '教她归还。', effect: { trust: 10, mood: -2, charm: 4 }, reaction: '她有点不情愿，但还是把袋子交给了巡守。', flags: { kindness: 3, wisdom: 1 } },
+      { id: 'money_b', title: '"你觉得应该怎么做？"', desc: '让她自己决定。', effect: { intelligence: 5, trust: 6, mood: 4 }, reaction: '她想了很久，最后说："还是还回去吧。"', flags: { wisdom: 3 } },
+      { id: 'money_c', title: '"捡到的就是我们的了。"', desc: '收下当零花。', effect: { money: 40, trust: -3, mood: 5 }, reaction: '她开心地跳了起来。但你没注意到，她眼神里有一丝不安。', flags: {} },
+    ],
+  },
+  {
+    id: 'seaStar', emoji: '⭐', title: '海星搁浅', minAge: 13,
+    text: '海边的浅滩上，一只海星被浪冲上了岸。\n\n她蹲下来，小心翼翼地把它捧在手心：\n\n"它会不会死掉？"',
+    choices: [
+      { id: 'seaStar_a', title: '一起放回海里', desc: '温柔地把它送回海里。', effect: { mood: 10, charm: 4, trust: 6 }, reaction: '她看着海星慢慢滑进水里，笑了。', flags: { kindness: 2, empathy: 2 } },
+      { id: 'seaStar_b', title: '带回家养', desc: '也许能养在水盆里。', effect: { intelligence: 5, mood: 5 }, reaction: '她认真地查了一晚上资料，第二天决定还是送它回去。', flags: { wisdom: 2 } },
+      { id: 'seaStar_c', title: '随它去吧', desc: '大自然有它自己的规律。', effect: { intelligence: 4, mood: -3 }, reaction: '她想了想，点点头。', flags: { wisdom: 1 } },
+    ],
+  },
+  {
+    id: 'stranger', emoji: '🧙', title: '神秘的老人', minAge: 12,
+    text: '一个穿着黑袍的老人出现在海边，对着她说了些什么。\n\n你走过去时，老人已经不见了。\n\n她转过头，眼神有些恍惚："他说……我身上有古老的印记。"',
+    choices: [
+      { id: 'stranger_a', title: '"别怕，我在这里。"', desc: '抱住她。', effect: { mood: 8, trust: 10 }, reaction: '她靠在你怀里，慢慢平静下来。', flags: { empathy: 2, magiPath: 1 } },
+      { id: 'stranger_b', title: '"也许你确实与众不同。"', desc: '鼓励她探索。', effect: { intelligence: 6, mood: 5 }, reaction: '她若有所思地点点头。', flags: { magiPath: 3, wisdom: 1 } },
+      { id: 'stranger_c', title: '"别听他的，那些都是假的。"', desc: '安慰她。', effect: { mood: 3, trust: 3 }, reaction: '她安心了一些，但你知道她偷偷看了海边好几次。', flags: {} },
+    ],
+  },
+  {
+    id: 'theft', emoji: '🪙', title: '镇上的失窃', minAge: 14,
+    text: '镇上有人丢了贵重的东西，而她在场。\n\n镇上的人开始怀疑她。\n\n她跑回家，红着眼眶问你："你相信我吗？"',
+    choices: [
+      { id: 'theft_a', title: '"我永远相信你。"', desc: '无条件支持她。', effect: { mood: 12, trust: 15, charm: 2 }, reaction: '她扑进你怀里，哭得肩膀发抖。', flags: { empathy: 3, kindness: 2 } },
+      { id: 'theft_b', title: '"我们一起找出真相。"', desc: '教她用行动证明自己。', effect: { intelligence: 8, trust: 10, mood: 6 }, reaction: '三天后，真相大白。', flags: { wisdom: 3, courage: 2 } },
+      { id: 'theft_c', title: '"先冷静下来。"', desc: '让她先冷静。', effect: { mood: -3, trust: 4, intelligence: 4 }, reaction: '她点点头，但眼神里有一丝受伤。', flags: { wisdom: 1 } },
+    ],
+  },
+  {
+    id: 'illness', emoji: '🤒', title: '一场重病', minAge: 15,
+    text: '她生了一场重病，高烧不退。\n\n镇上的医生说，只有一种罕见的海草药能救她。',
+    choices: [
+      { id: 'illness_a', title: '倾家荡产也要救她', desc: '不惜一切代价。', effect: { money: -50, trust: 15, mood: 10, stamina: 10 }, reaction: '她醒来时，看到床边憔悴的你，眼泪一下子涌出来。', flags: { empathy: 4, kindness: 2 } },
+      { id: 'illness_b', title: '去找旅行商人求助', desc: '商人要求一个承诺。', effect: { trust: 10, mood: 8, intelligence: 4 }, reaction: '商人给了你药，但要求一个承诺——她十八岁那年要去远方一趟。', flags: { magiPath: 2, wisdom: 2 } },
+      { id: 'illness_c', title: '试试镇上传统的方法', desc: '保守治疗。', effect: { mood: -5, trust: 5, stamina: -10 }, reaction: '她挺过来了，但身体比以前虚弱。', flags: { wisdom: 2 } },
+    ],
+  },
+  {
+    id: 'awaken', emoji: '🔮', title: '魔法的觉醒', minAge: 15,
+    text: '那天夜里，她房间的烛火突然全部熄灭了。\n\n你冲进去，看见她坐在床上，眼睛发着微弱的光，手掌上浮着一个旋转的水球。\n\n她抬起头，声音有点颤抖："我……我好像不太一样。"',
+    choices: [
+      { id: 'awaken_a', title: '"不管你是什么，你都是我的孩子。"', desc: '无条件接纳她。', effect: { mood: 15, trust: 12, charm: 5 }, reaction: '她哭了出来，抱住你，水球消失了。', flags: { magiPath: 4, empathy: 3 } },
+      { id: 'awaken_b', title: '"这是你的天赋，要学会控制它。"', desc: '教她掌控力量。', effect: { intelligence: 10, charm: 6, mood: 5 }, reaction: '几周后，她能自如地让水球变大变小。', flags: { magiPath: 5, wisdom: 3, ambition: 2 } },
+      { id: 'awaken_c', title: '"我们得藏起来，别让人知道。"', desc: '保护她不受伤害。', effect: { mood: 5, trust: 8, intelligence: 4 }, reaction: '她点点头，但你知道她心里有些失落。', flags: { magiPath: 3, wisdom: 1 } },
+    ],
+  },
+  {
+    id: 'royalLetter', emoji: '👑', title: '血脉的秘密', minAge: 16,
+    text: '旅行商人临走前，悄悄给了你一封信。\n\n信上写着：这个孩子，是深海中一位古代王族的后裔。\n\n你握紧了信纸。',
+    choices: [
+      { id: 'royal_a', title: '告诉她真相', desc: '让她知道自己的身世。', effect: { mood: 5, trust: 12, intelligence: 8 }, reaction: '她沉默了很久，然后说："不管我是谁，我都是你的孩子。"', flags: { royalPath: 5, wisdom: 2, empathy: 2 } },
+      { id: 'royal_b', title: '暂时保密', desc: '等她长大一点再说。', effect: { mood: 8, intelligence: 4 }, reaction: '你收起了信纸。', flags: { royalPath: 2, wisdom: 3 } },
+      { id: 'royal_c', title: '烧掉信', desc: '不让秘密打扰她。', effect: { mood: 10, trust: 5 }, reaction: '你看着信纸化为灰烬。', flags: { royalPath: 1, wisdom: 1 } },
+    ],
+  },
+  {
+    id: 'divine', emoji: '✨', title: '神性的微光', minAge: 16,
+    text: '她十五岁那年，镇上大旱。\n\n她赤脚走到干涸的河床上，蹲下身，双手合十。\n\n一滴水从她指尖滑落。然后是第二滴，第三滴。',
+    choices: [
+      { id: 'divine_a', title: '"你是被祝福的孩子。"', desc: '让她接受这份使命。', effect: { mood: 8, charm: 12, intelligence: 6 }, reaction: '她看着自己的手，若有所思。', flags: { divinePath: 5, ambition: 2 } },
+      { id: 'divine_b', title: '"这是一份责任，不是荣耀。"', desc: '教她谦卑。', effect: { trust: 8, mood: 5, kindness: 0 }, reaction: '第二天她去帮镇上的老人挑水。', flags: { divinePath: 4, wisdom: 4, kindness: 3 } },
+      { id: 'divine_c', title: '"别让人知道，会招来危险。"', desc: '保护她。', effect: { mood: 3, trust: 6 }, reaction: '她点点头，但你知道她心里有些矛盾。', flags: { divinePath: 2, wisdom: 2 } },
+    ],
+  },
+  {
+    id: 'crossroads', emoji: '🌠', title: '命运的路口', minAge: 17,
+    text: '她十七岁那年，一个来自远方的使者找到了她。\n\n使者说：海底的古城正在等待它的继承人。但她必须在十八岁生日那天做出选择——\n\n是留下，还是永远离开。\n\n她转过头，看着你。',
+    choices: [
+      { id: 'crossroads_a', title: '"去追寻你的命运吧。"', desc: '放手让她走。', effect: { mood: 5, trust: 15, charm: 6 }, reaction: '她抱住你，很久很久。', flags: { magiPath: 3, royalPath: 3, courage: 4 } },
+      { id: 'crossroads_b', title: '"不管你选什么，我都支持你。"', desc: '给她自由。', effect: { mood: 12, trust: 12, wisdom: 0 }, reaction: '她笑了，眼里有泪光。', flags: { empathy: 4, wisdom: 3 } },
+      { id: 'crossroads_c', title: '"我希望你留下。"', desc: '说出你的心愿。', effect: { mood: -3, trust: 8, empathy: 0 }, reaction: '她看着你，没有说话。但你知道，她懂。', flags: { kindness: 2, empathy: 2 } },
+    ],
+  },
+];
+
+/* ==================== 结局库 ==================== */
+const ENDINGS = [
+  // 文学路线
+  { id: 'lit_scholar', name: '执笔为灯', emoji: '📚', priority: 20,
+    condition: s => s.skills.literature >= 5,
+    desc: `十八岁那年，她带着你送她的笔记本，登上了离港的船。\n\n多年以后，她成为了一位学者。她的著作被译为多种语言，扉页上都写着同一句话——"献给我的母亲，是她教会我，文字可以照亮黑暗。"`,
+    epilogue: '她的书架上，有一本她从未出版的手稿——那是她八岁那年写下的第一首诗。' },
+  { id: 'lit_poet', name: '海的诗人', emoji: '✒️', priority: 18,
+    condition: s => s.skills.literature >= 3 && s.charm >= 40,
+    desc: `她成为了一位诗人。她的诗集名为《潮汐的守望》。\n\n在签售会上，有读者问她："你最感谢谁？"\n\n她想了想，说："一个总在灯下等我回家的人。"`,
+    epilogue: '她的每一本诗集，第一页都印着同一句题辞——"致那些安静的下午"。' },
+  // 音乐路线
+  { id: 'mus_master', name: '琴键上的海', emoji: '🎵', priority: 20,
+    condition: s => s.skills.music >= 5,
+    desc: `十八岁那年，她背着你送她的琴，登上了离港的船。\n\n多年以后，她成为了一位享誉世界的音乐家。她说："音乐不是用来炫技的，是用来让孤独的人感到被看见。"`,
+    epilogue: '她的每一场演出结尾，都会弹一首无名的小曲——那是小时候你教她的第一支歌。' },
+  // 科学路线
+  { id: 'sci_genius', name: '深海的研究者', emoji: '🔬', priority: 20,
+    condition: s => s.skills.science >= 5,
+    desc: `十八岁那年，她带着你送她的放大镜，登上了离港的船。\n\n多年以后，她成为了一位海洋学家。她发现了三种新的深海生物，其中一种以你的名字命名。`,
+    epilogue: '她的实验室里，一直摆着一本破旧的科普书——那是你送给她的第一本书。' },
+  // 美术路线
+  { id: 'art_master', name: '画海的人', emoji: '🎨', priority: 20,
+    condition: s => s.skills.art >= 5,
+    desc: `十八岁那年，她带着你送她的画具，登上了离港的船。\n\n多年以后，她成为了一位伟大的画家。但她最珍视的，是八岁那年画的第一幅画——画上是你，和一个模糊的家。`,
+    epilogue: '她每年都会画一幅海。每一幅里，都有一个小小的背影。' },
+  // 礼仪路线
+  { id: 'eti_lady', name: '优雅的守望者', emoji: '🎀', priority: 20,
+    condition: s => s.skills.etiquette >= 5,
+    desc: `十八岁那年，她穿着你送她的水蓝裙子，登上了离港的船。\n\n多年以后，她成为了一位优雅的慈善家。她创办了一个帮助贫困儿童的基金。\n\n她说："我妈妈教我，美丽是一种力量，但善良才是最美的。"`,
+    epilogue: '每年你的生日，她都会寄来一束海边才有的花。' },
+  // 运动路线
+  { id: 'sport_champion', name: '追风的冠军', emoji: '🏅', priority: 20,
+    condition: s => s.skills.sports >= 5,
+    desc: `十八岁那年，她带着一身阳光的气息，登上了离港的船。\n\n多年以后，她成为了一位运动员。她说："我所有的力量，都来自一个地方——一个让我自由奔跑的童年。"`,
+    epilogue: '她的奖牌挂满了墙，但她最珍惜的，是你送她的第一双跑鞋。' },
+  // 综合/特殊
+  { id: 'balanced', name: '兰心蕙质', emoji: '⭐', priority: 12,
+    condition: s => s.intelligence >= 50 && s.charm >= 50 && s.mood >= 60,
+    desc: `她成为了一位才华横溢的人。人们称她为"全才"，但她说自己只是"一个被爱得很好的孩子"。`,
+    epilogue: '她的书房里，一直放着一张旧照片——那是你牵着她的手，走过雨后的海岸。' },
+  { id: 'happy', name: '海边的花匠', emoji: '🌸', priority: 6,
+    condition: s => s.mood >= 85 && s.trust >= 70,
+    desc: `她没有成为什么大人物，但她成为了一个快乐的人。她在海边开了一家小花店。`,
+    epilogue: '每年春天，她的花店门口都会挂一块小木牌："今天的花，开得真好。"' },
+  { id: 'soulmate', name: '血脉相连', emoji: '💞', priority: 14,
+    condition: s => s.trust >= 85 && s.mood >= 75,
+    desc: `多年以后，她成为了你最亲密的朋友。她会在你难过的时候，轻轻抱住你，说："我在。"`,
+    epilogue: '你保留着那封信。每次读，都会想起她第一次叫你"妈妈"的样子。' },
+  // 魔法/王族/神性
+  { id: 'magi', name: '深海魔女', emoji: '🔮', priority: 25,
+    condition: s => s.flags.magiPath >= 6,
+    desc: `十八岁那年，她走向了大海。海水分开，露出一条通往深海的路。\n\n多年以后，小镇的人们说，深海里住着一位会操纵潮汐的魔女。她从不伤人，只是每年冬至的那一天，会在海面上放下一枚贝壳。`,
+    epilogue: '每年冬至，你的窗台上都会出现一枚湿漉漉的贝壳。' },
+  { id: 'royal', name: '潮汐女王', emoji: '👑', priority: 25,
+    condition: s => s.flags.royalPath >= 5 && s.flags.magiPath >= 3,
+    desc: `她回到了海底的古城。当她走上王座的那一刻，整座城市的水晶都亮了起来。\n\n多年以后，她成为了潮汐女王。但每年开春的第一天，她会独自浮上海面，遥望一座小小的渔村。`,
+    epilogue: '她每年都会在开春的第一天，坐在海边的礁石上，安静地看一整天。' },
+  { id: 'divine', name: '海之女神', emoji: '✨', priority: 26,
+    condition: s => s.flags.divinePath >= 6,
+    desc: `她成为了潮汐镇的守护神。\n\n小镇的人们在海边为她立了一座小小的神庙。但她从来不曾进入那座神庙。她更喜欢坐在礁石上，和你一起看落日。`,
+    epilogue: '神庙里的雕像旁边，永远放着一张旧照片。' },
+  { id: 'magi_queen', name: '双界的守望者', emoji: '🌌', priority: 28,
+    condition: s => s.flags.magiPath >= 6 && s.flags.royalPath >= 5 && s.flags.divinePath >= 4,
+    desc: `她同时拥有了魔女的魔力、王族的血脉、和神的祝福。\n\n她没有选择成为其中任何一种。她选择成为"桥梁"。\n\n人们叫她"守望者"。`,
+    epilogue: '她每次回来，都会给你带一枚不同的贝壳。那些贝壳，来自世界上最深的海沟。' },
+  // 性格特殊
+  { id: 'brave', name: '乘风破浪的船长', emoji: '⛵', priority: 16,
+    condition: s => s.flags.courage >= 5 && s.charm >= 40,
+    desc: `她成为了一位船长。她的船帆上画着海浪和星光。`,
+    epilogue: '她的船名叫"守望号"。' },
+  { id: 'gentle', name: '静水流深的作家', emoji: '🌊', priority: 16,
+    condition: s => s.flags.wisdom >= 5 && s.intelligence >= 40,
+    desc: `她成为了一位作家。她写的书没有激烈的冲突，只有安静的海、温柔的月光。`,
+    epilogue: '她每年只出一本书。每一本的扉页上，都写着："献给我的妈妈。"' },
+  { id: 'healer', name: '治愈之手的医者', emoji: '💊', priority: 17,
+    condition: s => s.flags.kindness >= 5 && s.flags.empathy >= 4,
+    desc: `她成为了一位医者。她在小镇开了一家诊所，免费给穷苦的人看病。`,
+    epilogue: '她的诊所里，挂着一幅小小的画——画上是她八岁那年画的一片海。' },
+  { id: 'lonely', name: '孤帆远影', emoji: '🚢', priority: 10,
+    condition: s => s.intelligence >= 60 && s.mood < 35,
+    desc: `她成为了一位杰出的学者。但她很少笑，也很少回家。`,
+    epilogue: '你把她的信放在枕头下。每年生日，你都会翻出来看一遍。' },
+  { id: 'companion', name: '温柔守望', emoji: '🕊️', priority: 10,
+    condition: s => s.trust >= 75 && s.skills.etiquette >= 3 && s.intelligence < 50,
+    desc: `她成为了一位温柔的人。她在社区里做义工，照顾老人，陪小朋友读书。`,
+    epilogue: '她在社区里被孩子们叫做"月亮姐姐"。' },
+  { id: 'ordinary', name: '细水长流', emoji: '🍃', priority: 1,
+    condition: () => true,
+    desc: `她过着平凡而温馨的生活。周末她会回来看你。`,
+    epilogue: '她依然住得不远。每周三的晚上，她会带着自己做的小菜过来。' },
+];
+
+/* ==================== 成就 ==================== */
+const ACHIEVEMENTS = [
+  { id: 'first_focus', name: '初次专注', emoji: '⏳', desc: '完成第一次专注', cond: (s, e) => e.focusCount >= 1 },
+  { id: 'focus_5', name: '专注达人', emoji: '🎯', desc: '完成5次专注', cond: (s, e) => e.focusCount >= 5 },
+  { id: 'focus_10', name: '心流体验', emoji: '🌊', desc: '完成10次专注', cond: (s, e) => e.focusCount >= 10 },
+  { id: 'focus_20', name: '专注大师', emoji: '🏔️', desc: '完成20次专注', cond: (s, e) => e.focusCount >= 20 },
+  { id: 'rich_100', name: '小有积蓄', emoji: '🐚', desc: '持有贝壳币达到100', cond: s => s.money >= 100 },
+  { id: 'rich_300', name: '富甲一方', emoji: '💎', desc: '持有贝壳币达到300', cond: s => s.money >= 300 },
+  { id: 'smart_50', name: '智慧之光', emoji: '🧠', desc: '智力达到50', cond: s => s.intelligence >= 50 },
+  { id: 'charm_50', name: '魅力四射', emoji: '✨', desc: '魅力达到50', cond: s => s.charm >= 50 },
+  { id: 'mood_90', name: '快乐之心', emoji: '💖', desc: '心情达到90', cond: s => s.mood >= 90 },
+  { id: 'trust_90', name: '深深羁绊', emoji: '🤝', desc: '羁绊达到90', cond: s => s.trust >= 90 },
+  { id: 'collector_3', name: '小小收藏家', emoji: '🎁', desc: '在旅商处购买3件物品', cond: (s, e) => e.purchaseCount >= 3 },
+  { id: 'collector_8', name: '收藏家', emoji: '📦', desc: '在旅商处购买8件物品', cond: (s, e) => e.purchaseCount >= 8 },
+  { id: 'skill_5', name: '专精之路', emoji: '🌟', desc: '任意技能达到5级', cond: s => Object.values(s.skills).some(v => v >= 5) },
+  { id: 'chooser_5', name: '抉择者', emoji: '🔮', desc: '做出5次重要选择', cond: (s, e) => e.choicesMade >= 5 },
+  { id: 'chooser_10', name: '命运的主宰', emoji: '🌠', desc: '做出10次重要选择', cond: (s, e) => e.choicesMade >= 10 },
+  { id: 'letter_read', name: '拆开信', emoji: '💌', desc: '阅读女儿的信', cond: (s, e) => e.letterRead === true },
+  { id: 'merchant_3', name: '旅商的熟客', emoji: '🎒', desc: '和旅行商人交易3次', cond: (s, e) => e.merchantVisits >= 3 },
+  { id: 'flag_magi', name: '魔女的引路人', emoji: '🔮', desc: '魔女路线达到3点', cond: s => s.flags.magiPath >= 3 },
+  { id: 'flag_royal', name: '王族的血脉', emoji: '👑', desc: '王族路线达到3点', cond: s => s.flags.royalPath >= 3 },
+  { id: 'flag_divine', name: '神性的微光', emoji: '✨', desc: '神性路线达到3点', cond: s => s.flags.divinePath >= 3 },
+];
+
+/* ==================== DOM ==================== */
+let $;
+let mainPanel, daughterAvatar, speechText, daughterSpeech, statusTag, daughterTraits;
+let progressLabel, progressSub;
+let intVal, charmVal, staminaVal, moodVal, trustVal;
+let intBar, charmBar, staminaBar, moodBar, trustBar;
+let pillInt, pillCharm, pillStamina, pillMood, pillTrust;
+let focusTime, focusHint, sessionGold, totalGold, focusCompanion, companionText;
+let startPauseBtn, resetTimerBtn;
+let modalOverlay, modalContent;
+let achievementToast, achIcon, achName;
+let profileBtn, profileBadge;
+
+function cacheDom() {
+  $ = id => document.getElementById(id);
+  mainPanel = $('mainPanel');
+  daughterAvatar = $('daughterAvatar');
+  speechText = $('speechText');
+  daughterSpeech = $('daughterSpeech');
+  statusTag = $('statusTag');
+  daughterTraits = $('daughterTraits');
+  progressLabel = $('progressLabel'); progressSub = $('progressSub');
+  intVal = $('intVal'); charmVal = $('charmVal'); staminaVal = $('staminaVal');
+  moodVal = $('moodVal'); trustVal = $('trustVal');
+  intBar = $('intBar'); charmBar = $('charmBar'); staminaBar = $('staminaBar');
+  moodBar = $('moodBar'); trustBar = $('trustBar');
+  pillInt = $('pillInt'); pillCharm = $('pillCharm'); pillStamina = $('pillStamina');
+  pillMood = $('pillMood'); pillTrust = $('pillTrust');
+  focusTime = $('focusTime'); focusHint = $('focusHint');
+  sessionGold = $('sessionGold'); totalGold = $('totalGold');
+  focusCompanion = $('focusCompanion'); companionText = $('companionText');
+  startPauseBtn = $('startPauseBtn'); resetTimerBtn = $('resetTimerBtn');
+  modalOverlay = $('modalOverlay'); modalContent = $('modalContent');
+  achievementToast = $('achievementToast'); achIcon = $('achIcon'); achName = $('achName');
+  profileBtn = $('profileBtn'); profileBadge = $('profileBadge');
+  canvas = $('timerCanvas');
+  ctx = canvas ? canvas.getContext('2d') : null;
+}
+
+/* ==================== 工具 ==================== */
+const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+const rand = arr => arr[Math.floor(Math.random() * arr.length)];
+function formatDuration(sec) {
+  if (sec < 60) return sec + '秒';
+  if (sec < 3600) return Math.floor(sec / 60) + '分钟';
+  return Math.floor(sec / 3600) + '小时' + Math.floor((sec % 3600) / 60) + '分';
+}
+
+/* ==================== 心情过低掉羁绊 ==================== */
+function checkLowMood() {
+  if (state.mood <= 20 && !state.lowMoodWarned) {
+    state.lowMoodWarned = true;
+    state.trust = clamp(state.trust - 5, 0, 100);
+    floatNumMulti([{ text: '-5 羁绊（心情过低）', color: '#c05a72' }], true);
+    unlockMemory('lowMood');
+  } else if (state.mood > 35) {
+    state.lowMoodWarned = false;
+  }
+}
+
+/* ==================== UI 更新 ==================== */
+function updateStatsUI() {
+  intVal.textContent = state.intelligence;
+  charmVal.textContent = state.charm;
+  staminaVal.textContent = state.stamina;
+  moodVal.textContent = state.mood;
+  trustVal.textContent = state.trust;
+
+  intBar.style.width = clamp(state.intelligence / state.caps.int * 100, 0, 100) + '%';
+  charmBar.style.width = clamp(state.charm / state.caps.charm * 100, 0, 100) + '%';
+  staminaBar.style.width = clamp(state.stamina / state.caps.stamina * 100, 0, 100) + '%';
+  moodBar.style.width = clamp(state.mood / state.caps.mood * 100, 0, 100) + '%';
+  trustBar.style.width = clamp(state.trust / state.caps.trust * 100, 0, 100) + '%';
+
+  // 心情过低警告
+  pillMood.classList.toggle('warn', state.mood <= 20);
+
+  progressLabel.textContent = `第 ${state.year} / ${state.maxYears} 年`;
+  progressSub.textContent = `${state.age}岁 · 还剩 ${state.maxYears - state.year + 1} 年`;
+
+  if (totalGold) totalGold.textContent = Math.floor(extraStats.totalFocusSeconds / 60);
+
+  profileBadge.textContent = profile.kidsRaised.length;
+  profileBadge.classList.toggle('hidden', profile.kidsRaised.length === 0);
+}
+
+function bumpStat(pillEl) {
+  pillEl.classList.remove('bump');
+  void pillEl.offsetWidth;
+  pillEl.classList.add('bump');
+}
+
+/* ==================== 成就 ==================== */
+let achievementQueue = [];
+let achievementShowing = false;
+function showAchievementToast(ach) {
+  achievementQueue.push(ach);
+  if (!achievementShowing) processAchievementQueue();
+}
+function processAchievementQueue() {
+  if (achievementQueue.length === 0) { achievementShowing = false; return; }
+  achievementShowing = true;
+  const ach = achievementQueue.shift();
+  achIcon.textContent = ach.emoji;
+  achName.textContent = ach.name;
+  achievementToast.classList.add('show');
+  setTimeout(() => {
+    achievementToast.classList.remove('show');
+    setTimeout(processAchievementQueue, 400);
+  }, 2600);
+}
+
+/* ==================== 语音/动画 ==================== */
+function setSpeech(text, mood = 'normal', duration = 4000) {
+  speechText.textContent = text;
+  if (duration > 0) {
+    clearTimeout(setSpeech._t);
+    setSpeech._t = setTimeout(() => {
+      if (speechText.textContent === text) {
+        const p = state.profile;
+        const baseMood = state.mood >= 70 ? 'happy' : state.mood < 40 ? 'sad' : 'normal';
+        speechText.textContent = rand(p.catchphrases[baseMood]);
+      }
+    }, duration);
+  }
+}
+
+function avatarAnimate(type) {
+  daughterAvatar.classList.remove('happy', 'sad', 'focus', 'tired');
+  void daughterAvatar.offsetWidth;
+  if (type) daughterAvatar.classList.add(type);
+  setTimeout(() => daughterAvatar.classList.remove('happy', 'sad', 'focus', 'tired'), 1500);
+}
+
+function refreshDaughterAvatar() {
+  const p = state.profile;
+  daughterAvatar.textContent = p.emoji;
+  daughterTraits.innerHTML = `
+    <div class="trait-chip personality">${p.personality}</div>
+    <div class="trait-chip hobby">${p.hobby}</div>
+    <div class="trait-chip talent">🌟 ${p.talent}</div>
+  `;
+}
+
+/* ==================== 天赋计算 ==================== */
+function calcEffectWithTalent(task) {
+  const effect = { ...task.effect };
+  const tb = state.profile.talentBonus;
+  const talentMatch = task.skill && task.skill === tb;
+  let isTalentBoost = false;
+  if (talentMatch) {
+    isTalentBoost = true;
+    for (const k in effect) {
+      if (effect[k] > 0) effect[k] = Math.round(effect[k] * 1.5);
+      else if (effect[k] < 0) effect[k] = Math.round(effect[k] * 0.5);
+    }
+  }
+  return { effect, isTalentBoost };
+}
+
+/* ==================== 效果应用（浮字每行一个） ==================== */
+const EFFECT_LABELS = {
+  intelligence: { name: '智力', color: '#3a8fa8', icon: '🧠' },
+  charm: { name: '魅力', color: '#c9639a', icon: '✨' },
+  stamina: { name: '体力', color: '#5cb890', icon: '💪' },
+  mood: { name: '心情', color: '#d97da6', icon: '💙' },
+  trust: { name: '羁绊', color: '#9a7ac8', icon: '💖' },
+  money: { name: '贝壳币', color: '#b88a3d', icon: '🐚' },
+};
+
+function applyEffect(effect) {
+  const lines = [];
+  if (effect.intelligence) {
+    state.intelligence = Math.max(0, state.intelligence + effect.intelligence);
+    bumpStat(pillInt);
+    lines.push({ text: `${effect.intelligence > 0 ? '+' : ''}${effect.intelligence} 智力`, color: EFFECT_LABELS.intelligence.color });
+  }
+  if (effect.charm) {
+    state.charm = Math.max(0, state.charm + effect.charm);
+    bumpStat(pillCharm);
+    lines.push({ text: `${effect.charm > 0 ? '+' : ''}${effect.charm} 魅力`, color: EFFECT_LABELS.charm.color });
+  }
+  if (effect.stamina) {
+    state.stamina = clamp(state.stamina + effect.stamina, 0, 100);
+    bumpStat(pillStamina);
+    lines.push({ text: `${effect.stamina > 0 ? '+' : ''}${effect.stamina} 体力`, color: EFFECT_LABELS.stamina.color });
+  }
+  if (effect.mood) {
+    state.mood = clamp(state.mood + effect.mood, 0, 100);
+    bumpStat(pillMood);
+    lines.push({ text: `${effect.mood > 0 ? '+' : ''}${effect.mood} 心情`, color: EFFECT_LABELS.mood.color });
+  }
+  if (effect.trust) {
+    state.trust = clamp(state.trust + effect.trust, 0, 100);
+    bumpStat(pillTrust);
+    lines.push({ text: `${effect.trust > 0 ? '+' : ''}${effect.trust} 羁绊`, color: EFFECT_LABELS.trust.color });
+  }
+  if (effect.money) {
+    state.money = Math.max(0, state.money + effect.money);
+    lines.push({ text: `${effect.money > 0 ? '+' : ''}${effect.money} 🐚`, color: EFFECT_LABELS.money.color });
+  }
+  if (effect.flags) {
+    for (const k in effect.flags) {
+      state.flags[k] = (state.flags[k] || 0) + effect.flags[k];
+    }
+  }
+  if (lines.length > 0) floatNumMulti(lines, false);
+  checkLowMood();
+  updateStatsUI();
+}
+
+/* 浮字：每行一个，依次飘出 */
+function floatNumMulti(lines, isWarning) {
+  const baseX = window.innerWidth / 2;
+  const baseY = window.innerHeight / 2 - 60;
+  lines.forEach((line, i) => {
+    const el = document.createElement('div');
+    el.className = 'float-num';
+    el.textContent = line.text;
+    el.style.color = line.color;
+    el.style.left = baseX + 'px';
+    el.style.top = (baseY + i * 26) + 'px';
+    el.style.animation = `floatUpMulti 1.4s ease-out ${i * 0.08}s forwards`;
+    if (isWarning) {
+      el.style.fontSize = '1.15rem';
+      el.style.animation = `floatUpMulti 1.8s ease-out forwards`;
+    }
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 2000 + i * 100);
+  });
+}
+
+/* ==================== 回忆 ==================== */
+function unlockMemory(key) {
+  if (!MEMORY_POOL[key]) return;
+  if (state.memories && state.memories.includes(key)) return;
+  if (!state.memories) state.memories = [];
+  state.memories.push(key);
+  profile.totalMemories.add(key);
+  saveProfile();
+  checkAchievements();
+}
+
+/* ==================== 专注计时 ==================== */
+function clearTimer() {
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = null;
+  isTimerRunning = false;
+}
+
+const FOCUS_COMPANION_LINES = [
+  '女儿安静地陪着你…', '她趴在桌边，偷偷看你…', '她小声哼着歌，不想打扰你…',
+  '她在旁边画画，偶尔抬头看你一眼…', '她帮你倒了一杯水，轻轻放在桌上…',
+];
+
+function toggleTimer() {
+  if (isTimerRunning) {
+    clearTimer();
+    startPauseBtn.textContent = '▶ 继续';
+    focusCompanion.style.display = 'none';
+    daughterAvatar.classList.remove('focus');
+    canvas.classList.remove('locked');
+    drawDisc();
+    return;
+  }
+
+  isTimerRunning = true;
+  startPauseBtn.textContent = '⏸ 暂停';
+  focusCompanion.style.display = 'flex';
+  companionText.textContent = rand(FOCUS_COMPANION_LINES);
+  avatarAnimate('focus');
+  canvas.classList.add('locked');
+
+  if (extraStats.focusCount === 0 && focusElapsedSec === 0) {
+    setTimeout(() => unlockMemory('firstFocus'), 1200);
+  }
+
+  const companionTimer = setInterval(() => {
+    if (isTimerRunning) companionText.textContent = rand(FOCUS_COMPANION_LINES);
+    else clearInterval(companionTimer);
+  }, 8000);
+
+  lastTickTime = Date.now();
+  timerInterval = setInterval(() => {
+    const now = Date.now();
+    const delta = Math.floor((now - lastTickTime) / 1000);
+    if (delta <= 0) return;
+    lastTickTime = now;
+
+    focusElapsedSec += delta;
+    const totalSec = state.focusMinutes * 60;
+    // 1 分钟 = 1 币
+    const perSec = 1 / 60;
+    sessionGold.textContent = Math.floor(focusElapsedSec * perSec);
+
+    drawDisc();
+
+    if (focusElapsedSec >= totalSec) {
+      clearTimer();
+      startPauseBtn.textContent = '▶ 开始';
+      focusCompanion.style.display = 'none';
+      daughterAvatar.classList.remove('focus');
+      canvas.classList.remove('locked');
+      clearInterval(companionTimer);
+
+      if (!sessionRewarded) {
+        const earned = Math.floor(totalSec / 60); // 1 分钟 = 1 币
+        state.money += earned;
+        state.mood = clamp(state.mood + 3, 0, 100);
+        state.stamina = clamp(state.stamina + 5, 0, 100); // 专注也恢复少量体力
+        extraStats.focusCount++;
+        extraStats.totalFocusSeconds += totalSec;
+        profile.totalFocusSeconds += totalSec;
+        saveProfile();
+        sessionRewarded = true;
+        setSpeech(`专注完成！赚到了 ${earned} 个贝壳～`, 'happy');
+        avatarAnimate('happy');
+        floatNumMulti([{ text: `+${earned} 🐚`, color: '#b88a3d' }, { text: '+3 心情', color: '#d97da6' }, { text: '+5 体力', color: '#5cb890' }], false);
+        checkAchievements();
+        updateStatsUI();
+      }
+      focusElapsedSec = 0;
+      sessionRewarded = false;
+      sessionGold.textContent = '0';
+      drawDisc();
+    }
+  }, 200);
+}
+
+function resetTimer() {
+  clearTimer();
+  startPauseBtn.textContent = '▶ 开始';
+  focusElapsedSec = 0;
+  sessionRewarded = false;
+  sessionGold.textContent = '0';
+  focusCompanion.style.display = 'none';
+  daughterAvatar.classList.remove('focus');
+  canvas.classList.remove('locked');
+  drawDisc();
+}
+
+/* ==================== 圆盘绘制 ==================== */
+function drawDisc() {
+  if (!ctx) return;
+  ctx.clearRect(0, 0, 320, 320);
+
+  ctx.beginPath();
+  ctx.arc(CX, CY, R, 0, Math.PI * 2);
+  ctx.strokeStyle = '#d0e8ef';
+  ctx.lineWidth = 18;
+  ctx.stroke();
+
+  if (isTimerRunning) {
+    const totalSec = state.focusMinutes * 60;
+    const progress = clamp(focusElapsedSec / totalSec, 0, 1);
+    if (progress > 0) {
+      const startAngle = -Math.PI / 2;
+      const endAngle = startAngle + progress * Math.PI * 2;
+      const grad = ctx.createLinearGradient(0, 0, 320, 320);
+      grad.addColorStop(0, '#5faec4');
+      grad.addColorStop(1, '#2c6f85');
+      ctx.beginPath();
+      ctx.arc(CX, CY, R, startAngle, endAngle, false);
+      ctx.strokeStyle = grad;
+      ctx.lineWidth = 18;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+    }
+    focusTime.textContent = Math.round(progress * 100) + '%';
+    focusHint.textContent = '专注中…';
+  } else {
+    const startAngle = -Math.PI / 2;
+    const endAngle = minutesToAngle(state.focusMinutes);
+    const grad = ctx.createLinearGradient(0, 0, 320, 320);
+    grad.addColorStop(0, '#5faec4');
+    grad.addColorStop(1, '#2c6f85');
+    ctx.beginPath();
+    ctx.arc(CX, CY, R, startAngle, endAngle, false);
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = 18;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+
+    for (let m = FOCUS_MIN; m <= FOCUS_MAX; m += 5) {
+      const a = minutesToAngle(m);
+      const isMajor = m % 15 === 0;
+      const innerR = R - (isMajor ? 32 : 26);
+      const outerR = R - 14;
+      const x1 = CX + innerR * Math.cos(a);
+      const y1 = CY + innerR * Math.sin(a);
+      const x2 = CX + outerR * Math.cos(a);
+      const y2 = CY + outerR * Math.sin(a);
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.strokeStyle = m <= state.focusMinutes ? '#2c6f85' : '#c0e0eb';
+      ctx.lineWidth = isMajor ? 2.5 : 1.5;
+      ctx.stroke();
+
+      if (m % 15 === 0) {
+        const labelR = R - 46;
+        const lx = CX + labelR * Math.cos(a);
+        const ly = CY + labelR * Math.sin(a);
+        ctx.fillStyle = m <= state.focusMinutes ? '#2c6f85' : '#90c8d8';
+        ctx.font = 'bold 11px -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(m, lx, ly);
+      }
+    }
+
+    const handleAngle = minutesToAngle(state.focusMinutes);
+    const hx = CX + R * Math.cos(handleAngle);
+    const hy = CY + R * Math.sin(handleAngle);
+    ctx.beginPath();
+    ctx.arc(hx, hy, 13, 0, Math.PI * 2);
+    ctx.fillStyle = '#fff';
+    ctx.shadowColor = '#2c6f85';
+    ctx.shadowBlur = 14;
+    ctx.fill();
+    ctx.shadowColor = 'transparent';
+    ctx.strokeStyle = '#2c6f85';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(hx, hy, 5, 0, Math.PI * 2);
+    ctx.fillStyle = '#2c6f85';
+    ctx.fill();
+
+    focusTime.textContent = state.focusMinutes;
+    focusHint.textContent = '分钟 · 拖动圆环';
+  }
+
+  ctx.beginPath();
+  ctx.arc(CX, CY, R - 26, 0, Math.PI * 2);
+  ctx.fillStyle = '#fafdff';
+  ctx.fill();
+  ctx.strokeStyle = '#e0f0f5';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+}
+
+function bindCanvas() {
+  if (!canvas) return;
+  function getMinutesFromEvent(e) {
+    const rect = canvas.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    const x = (clientX - rect.left) * (320 / rect.width);
+    const y = (clientY - rect.top) * (320 / rect.height);
+    const dx = x - CX;
+    const dy = y - CY;
+    return angleToMinutes(Math.atan2(dy, dx));
+  }
+  function startDrag(e) {
+    if (isTimerRunning) return;
+    discDragging = true;
+    state.focusMinutes = clamp(getMinutesFromEvent(e), FOCUS_MIN, FOCUS_MAX);
+    drawDisc();
+    e.preventDefault();
+  }
+  function moveDrag(e) {
+    if (!discDragging || isTimerRunning) return;
+    state.focusMinutes = clamp(getMinutesFromEvent(e), FOCUS_MIN, FOCUS_MAX);
+    drawDisc();
+    e.preventDefault();
+  }
+  function endDrag() { discDragging = false; }
+  canvas.addEventListener('mousedown', startDrag);
+  document.addEventListener('mousemove', moveDrag);
+  document.addEventListener('mouseup', endDrag);
+  canvas.addEventListener('touchstart', startDrag, { passive: false });
+  canvas.addEventListener('touchmove', moveDrag, { passive: false });
+  canvas.addEventListener('touchend', endDrag);
+}
+
+/* ==================== 日程安排界面 ==================== */
+const SEASON_KEYS = ['spring', 'summer', 'autumn', 'winter'];
+const SEASON_META = {
+  spring: { name: '春', icon: '🌸' },
+  summer: { name: '夏', icon: '☀️' },
+  autumn: { name: '秋', icon: '🍁' },
+  winter: { name: '冬', icon: '❄️' },
+};
+
+function openSchedule() {
+  // 检查旅商年
+  const isMerchantYear = [3, 6, 9].includes(state.year);
+  if (isMerchantYear && !state.seenEvents.has('merchant_year_' + state.year)) {
+    state.seenEvents.add('merchant_year_' + state.year);
+    unlockMemory('merchantFirst');
+    openMerchant(() => showScheduleModal());
+  } else {
+    showScheduleModal();
+  }
+}
+
+function showScheduleModal() {
+  renderScheduleModal();
+  openModal(`
+    <button class="close-btn" id="closeModalBtn">×</button>
+    <h2>📅 安排第 ${state.year} 年的日程</h2>
+    <div class="story-text" style="font-size:0.78rem; color:var(--ink-soft);">
+      点击下方的日程，按顺序填入 春 → 夏 → 秋 → 冬。四个季节都安排好之后，点击"开始执行"。
+    </div>
+    <div id="scheduleInner"></div>
+  `);
+  setTimeout(() => {
+    document.getElementById('closeModalBtn')?.addEventListener('click', closeModal);
+    renderScheduleContent();
+  }, 30);
+}
+
+function renderScheduleModal() {
+  // 这个函数只是让 modal 有个挂载点，内容在 renderScheduleContent 里渲染
+}
+function renderScheduleContent() {
+  const inner = document.getElementById('scheduleInner');
+  if (!inner) return;
+
+  // 四季槽
+  const seasonsHtml = SEASON_KEYS.map(key => {
+    const meta = SEASON_META[key];
+    const slot = state.schedule[key];
+    if (slot) {
+      const s = SCHEDULES.find(x => x.id === slot);
+      return `
+        <div class="season-slot ${key}">
+          <button class="s-remove" data-season="${key}">×</button>
+          <div class="s-icon">${meta.icon}</div>
+          <div class="s-name">${meta.name}</div>
+          <div class="s-content">
+            <div class="s-filled">
+              <div class="s-emoji">${s.emoji}</div>
+              <div class="s-label">${s.name}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    } else {
+      return `
+        <div class="season-slot ${key}">
+          <div class="s-icon">${meta.icon}</div>
+          <div class="s-name">${meta.name}</div>
+          <div class="s-content">
+            <div class="s-empty">待安排</div>
+          </div>
+        </div>
+      `;
+    }
+  }).join('');
+
+  // 可选日程
+  const schedulesHtml = SCHEDULES.map(s => {
+    const canAfford = state.money >= s.cost;
+    const isTalent = s.skill && s.skill === state.profile.talentBonus;
+    const costHtml = s.cost === 0
+      ? `<span class="sc-cost free">免费</span>`
+      : `<span class="sc-cost ${!canAfford ? 'insufficient' : ''}">🐚${s.cost}</span>`;
+    return `
+      <div class="schedule-card ${!canAfford ? 'disabled' : ''}" data-id="${s.id}">
+        <span class="sc-emoji">${s.emoji}</span>
+        <div class="sc-info">
+          <div class="sc-name">${s.name}${isTalent ? ' <span style="color:var(--gold-dark);font-size:0.6rem;">★天赋</span>' : ''}</div>
+          <div class="sc-effect">${s.desc}</div>
+        </div>
+        ${costHtml}
+      </div>
+    `;
+  }).join('');
+
+  const allFilled = SEASON_KEYS.every(k => state.schedule[k] !== null);
+  const totalCost = SEASON_KEYS.reduce((sum, k) => {
+    const id = state.schedule[k];
+    if (!id) return sum;
+    const s = SCHEDULES.find(x => x.id === id);
+    return sum + (s ? s.cost : 0);
+  }, 0);
+  const canAffordAll = state.money >= totalCost;
+
+  inner.innerHTML = `
+    <div class="seasons-grid" id="seasonsGrid">${seasonsHtml}</div>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin: 8px 0 12px;">
+      <div style="font-size:0.78rem; color:var(--ink-soft);">
+        已选 <strong>${SEASON_KEYS.filter(k => state.schedule[k]).length}/4</strong> · 
+        预计花费 <strong style="color:var(--gold-dark);">🐚${totalCost}</strong> · 
+        当前 <strong style="color:var(--gold-dark);">🐚${state.money}</strong>
+      </div>
+    </div>
+    <h3 style="margin-top:0;">可选日程</h3>
+    <div class="schedule-list" id="scheduleList">${schedulesHtml}</div>
+    <div class="schedule-actions">
+      <button class="btn" style="flex:1;" id="clearScheduleBtn">🗑️ 清空</button>
+      <button class="btn btn-primary" style="flex:2;" id="executeScheduleBtn" ${(!allFilled || !canAffordAll) ? 'disabled' : ''}>
+        ${!allFilled ? `还需安排 ${4 - SEASON_KEYS.filter(k => state.schedule[k]).length} 个季节` : (!canAffordAll ? '贝壳币不足' : '▶ 开始执行')}
+      </button>
+    </div>
+  `;
+
+  // 绑定事件
+  inner.querySelectorAll('.schedule-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const id = card.dataset.id;
+      const s = SCHEDULES.find(x => x.id === id);
+      if (!s) return;
+      if (state.money < s.cost) return;
+      // 找第一个空槽
+      const emptyKey = SEASON_KEYS.find(k => state.schedule[k] === null);
+      if (!emptyKey) {
+        // 全部已满，替换最后一个
+        state.schedule[SEASON_KEYS[3]] = id;
+      } else {
+        state.schedule[emptyKey] = id;
+      }
+      renderScheduleContent();
+    });
+  });
+  inner.querySelectorAll('.s-remove').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const season = btn.dataset.season;
+      state.schedule[season] = null;
+      renderScheduleContent();
+    });
+  });
+  document.getElementById('clearScheduleBtn')?.addEventListener('click', () => {
+    SEASON_KEYS.forEach(k => state.schedule[k] = null);
+    renderScheduleContent();
+  });
+  document.getElementById('executeScheduleBtn')?.addEventListener('click', () => {
+    closeModal();
+    executeSchedule();
+  });
+}
+
+/* ==================== 旅商界面 ==================== */
+function openMerchant(onClose) {
+  const merchantHtml = MERCHANT_ITEMS.map(item => {
+    const canAfford = state.money >= item.cost;
+    return `
+      <div class="merchant-card ${item.rare ? 'rare' : ''}">
+        <span class="mc-emoji">${item.emoji}</span>
+        <div class="mc-info">
+          <div class="mc-name">${item.name}${item.rare ? '<span class="mc-rare-tag">稀有</span>' : ''}</div>
+          <div class="mc-effect">${item.desc}</div>
+          <div class="mc-effect" style="color:var(--gold-dark); font-weight:800;">🐚${item.cost}</div>
+        </div>
+        <button class="btn-buy" data-id="${item.id}" ${!canAfford ? 'disabled' : ''}>购买</button>
+      </div>
+    `;
+  }).join('');
+
+  openModal(`
+    <button class="close-btn" id="closeModalBtn" style="display:none;">×</button>
+    <h2>🎒 旅行商人来访！</h2>
+    <div class="story-text" style="font-size:0.82rem;">
+      一个背着巨大包裹的商人来到了潮汐镇。他每三年才会来一次。<br>
+      他说："看看这些来自远方的宝贝吧，只此一次。"
+    </div>
+    <div class="merchant-grid" id="merchantGrid">${merchantHtml}</div>
+    <div style="margin-top:16px;">
+      <button class="btn btn-primary" style="width:100%;" id="merchantDoneBtn">继续安排日程 →</button>
+    </div>
+  `);
+  setTimeout(() => {
+    document.getElementById('merchantGrid')?.addEventListener('click', (e) => {
+      const btn = e.target.closest('.btn-buy');
+      if (!btn) return;
+      const item = MERCHANT_ITEMS.find(i => i.id === btn.dataset.id);
+      if (!item || state.money < item.cost) return;
+      state.money -= item.cost;
+      extraStats.purchaseCount++;
+      extraStats.merchantVisits++;
+      applyEffect(item.effect);
+      if (item.flag) {
+        for (const k in item.flag) state.flags[k] = (state.flags[k] || 0) + item.flag[k];
+      }
+      setSpeech('谢谢你！我会好好珍惜的！', 'happy');
+      checkAchievements();
+      updateStatsUI();
+      // 刷新按钮状态
+      const card = btn.closest('.merchant-card');
+      if (card) {
+        card.style.opacity = '0.5';
+        btn.disabled = true;
+        btn.textContent = '已购买';
+      }
+    });
+    document.getElementById('merchantDoneBtn')?.addEventListener('click', () => {
+      closeModal();
+      if (onClose) onClose();
+    });
+  }, 30);
+}
+
+/* ==================== 执行日程 ==================== */
+function executeSchedule() {
+  const queue = SEASON_KEYS.filter(k => state.schedule[k]).map(k => ({
+    season: k,
+    scheduleId: state.schedule[k],
+  }));
+
+  // 扣除总花费
+  const totalCost = queue.reduce((sum, item) => {
+    const s = SCHEDULES.find(x => x.id === item.scheduleId);
+    return sum + (s ? s.cost : 0);
+  }, 0);
+  state.money -= totalCost;
+
+  executeNextSeason(queue, 0);
+}
+
+function executeNextSeason(queue, index) {
+  if (index >= queue.length) {
+    // 全部执行完，进入下一年
+    setTimeout(() => advanceYear(), 800);
+    return;
+  }
+
+  const item = queue[index];
+  const meta = SEASON_META[item.season];
+  const s = SCHEDULES.find(x => x.id === item.scheduleId);
+  if (!s) { executeNextSeason(queue, index + 1); return; }
+
+  // 检查体力
+  const staminaCost = s.effect.stamina || 0;
+  if (staminaCost < 0 && state.stamina + staminaCost < 0) {
+    // 体力不足，强制休息
+    openModal(`
+      <button class="close-btn" id="closeModalBtn" style="display:none;">×</button>
+      <div class="executing-panel">
+        <div class="executing-season">😴</div>
+        <div class="executing-title">${meta.name}天 · 太累了</div>
+        <div class="executing-desc">她已经很累了，没办法去${s.name}。<br>你让她在家好好休息了一天。</div>
+        <button class="btn btn-primary" style="margin-top:14px;" id="nextSeasonBtn">继续 →</button>
+      </div>
+    `);
+    // 强制休息：恢复体力
+    state.stamina = clamp(state.stamina + 30, 0, 100);
+    state.mood = clamp(state.mood + 5, 0, 100);
+    floatNumMulti([{ text: '+30 体力', color: '#5cb890' }, { text: '+5 心情', color: '#d97da6' }], false);
+    setTimeout(() => {
+      document.getElementById('nextSeasonBtn')?.addEventListener('click', () => {
+        closeModal();
+        executeNextSeason(queue, index + 1);
+      });
+    }, 30);
+    return;
+  }
+
+  // 应用效果
+  const { effect, isTalentBoost } = calcEffectWithTalent(s);
+  applyEffect(effect);
+  if (s.skill && state.skills[s.skill] !== undefined) {
+    state.skills[s.skill] = Math.min(5, state.skills[s.skill] + 1);
+  }
+
+  // 显示执行动画
+  openModal(`
+    <button class="close-btn" id="closeModalBtn" style="display:none;">×</button>
+    <div class="executing-panel">
+      <div class="executing-season">${meta.icon}</div>
+      <div class="executing-title">${meta.name}天 · ${s.name}</div>
+      <div class="executing-desc">${s.desc}${isTalentBoost ? '<br><span style="color:var(--gold-dark);font-weight:700;">🌟 天赋加成！</span>' : ''}</div>
+      <div class="executing-avatar">${state.profile.emoji}</div>
+      <div class="executing-progress"><div id="execProgress"></div></div>
+    </div>
+  `);
+
+  setTimeout(() => {
+    const bar = document.getElementById('execProgress');
+    if (bar) bar.style.width = '100%';
+  }, 50);
+
+  // 1.5 秒后判断是否触发偶发事件
+  setTimeout(() => {
+    closeModal();
+    // 25% 概率触发偶发事件
+    if (Math.random() < 0.25) {
+      triggerIncident(() => executeNextSeason(queue, index + 1));
+    } else {
+      executeNextSeason(queue, index + 1);
+    }
+  }, 1600);
+}
+
+/* ==================== 偶发事件 ==================== */
+function triggerIncident(onDone) {
+  // 优先触发"有剧情"的选择事件
+  const availableChoices = CHOICE_EVENTS.filter(e =>
+    (!e.minAge || state.age >= e.minAge) && !state.seenEvents.has(e.id)
+  );
+  const availableRandom = RANDOM_EVENTS.filter(e => !state.seenEvents.has(e.id));
+
+  if (availableChoices.length === 0 && availableRandom.length === 0) {
+    if (onDone) onDone();
+    return;
+  }
+
+  // 60% 概率触发选择事件（如果有）
+  const useChoice = availableChoices.length > 0 && (availableRandom.length === 0 || Math.random() < 0.6);
+
+  if (useChoice) {
+    showChoiceEvent(rand(availableChoices), onDone);
+  } else {
+    const evt = rand(availableRandom);
+    state.seenEvents.add(evt.id);
+    extraStats.eventsTriggered++;
+    applyEffect(evt.effect);
+    setTimeout(() => {
+      setSpeech(evt.type === 'good' ? rand(['今天遇到了好事！', '好开心呀～']) : rand(['……有点难过。', '我不太开心。']), evt.type === 'good' ? 'happy' : 'sad', 3000);
+      if (onDone) setTimeout(onDone, 800);
+    }, 400);
+  }
+}
+
+function showChoiceEvent(event, onDone) {
+  state.seenEvents.add(event.id);
+  const choicesHtml = event.choices.map((c, i) => `
+    <button class="choice-btn" data-choice="${i}" style="background:linear-gradient(135deg,#f0f8fa,#e0f0f5);border:1.5px solid var(--sea-200);border-radius:18px;padding:14px 16px;text-align:left;cursor:pointer;transition:all 0.15s;font-family:inherit;width:100%;margin-bottom:8px;">
+      <div style="font-weight:800; font-size:0.9rem; color:var(--sea-700); margin-bottom:4px;">${c.title}</div>
+      <div style="font-size:0.75rem; color:var(--ink-soft); line-height:1.5;">${c.desc}</div>
+      <div style="font-size:0.65rem; color:var(--gold-dark); margin-top:6px; font-weight:700;">${Object.entries(c.effect).map(([k, v]) => {
+        const labels = { intelligence: '智力', charm: '魅力', stamina: '体力', mood: '心情', trust: '羁绊', money: '贝壳币' };
+        return `${labels[k] || k} ${v > 0 ? '+' : ''}${v}`;
+      }).join(' · ')}</div>
+    </button>
+  `).join('');
+
+  openModal(`
+    <button class="close-btn" id="closeModalBtn" style="display:none;">×</button>
+    <h2>${event.emoji} ${event.title}</h2>
+    <div class="story-text">${event.text}</div>
+    <div class="choice-list" id="choiceList">${choicesHtml}</div>
+  `);
+
+  setTimeout(() => {
+    document.querySelectorAll('.choice-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = parseInt(btn.dataset.choice, 10);
+        const choice = event.choices[idx];
+        applyEffect(choice.effect);
+        extraStats.choicesMade++;
+        state.choices.push({ eventId: event.id, choiceId: choice.id });
+        if (choice.flags) {
+          for (const k in choice.flags) {
+            state.flags[k] = (state.flags[k] || 0) + choice.flags[k];
+          }
+        }
+        closeModal();
+        setTimeout(() => {
+          setSpeech(choice.reaction, state.mood >= 50 ? 'happy' : 'normal', 4000);
+          checkAchievements();
+          updateStatsUI();
+          if (onDone) setTimeout(onDone, 800);
+        }, 400);
+      });
+    });
+  }, 30);
+}
+
+/* ==================== 推进年份 ==================== */
+function advanceYear() {
+  // 清空日程
+  SEASON_KEYS.forEach(k => state.schedule[k] = null);
+
+  // 年度结算
+  state.year++;
+  state.age++;
+
+  // 年底恢复一点体力和心情
+  state.stamina = clamp(state.stamina + 10, 0, 100);
+  state.mood = clamp(state.mood + 5, 0, 100);
+
+  // 特殊年份回忆
+  if (state.year === 3) unlockMemory('year3');
+  if (state.year === 5) unlockMemory('year5');
+  if (state.year === 7) unlockMemory('year7');
+  if (state.year === 9) unlockMemory('year9');
+
+  // 检查是否到结局
+  if (state.year > state.maxYears) {
+    triggerEnding();
+    return;
+  }
+
+  updateStatsUI();
+  setSpeech(rand(state.profile.catchphrases[state.mood >= 70 ? 'happy' : state.mood < 40 ? 'sad' : 'normal']));
+  avatarAnimate(state.mood >= 70 ? 'happy' : null);
+}
+
+/* ==================== 结局 ==================== */
+function determineEnding() {
+  const sorted = [...ENDINGS].sort((a, b) => b.priority - a.priority);
+  for (const e of sorted) {
+    if (e.condition(state)) return e;
+  }
+  return ENDINGS.find(e => e.id === 'ordinary');
+}
+
+function generateLetter() {
+  const trustHigh = state.trust >= 75;
+  const moodHigh = state.mood >= 70;
+  let content = `亲爱的${state.playerTitle}：\n\n`;
+  if (trustHigh && moodHigh) {
+    content += `写下这封信的时候，我刚刚过完我的十八岁生日。\n\n窗外是海，和十年前你第一次把我抱回家的那天一样。\n\n我一直以为"长大"是很遥远的事，直到今天我才意识到——原来我已经走过了那么远的路，而回头看，你一直在那里。\n\n`;
+  } else {
+    content += `写下这封信的时候，我刚到港口。\n\n船上的人都在忙碌，只有我一个人靠在栏杆上，看着越来越远的海岸线。\n\n忽然觉得，应该把这十年没说的话，都写下来。\n\n`;
+  }
+  content += `我记得八岁那年，你第一次为我专注的样子。那盏灯很暖。\n\n`;
+  content += `\n${state.playerTitle}，谢谢你。\n\n`;
+  content += `谢谢你在我害怕的时候没有走开。\n`;
+  content += `谢谢你在我说"我有个梦想"的时候，只是点头。\n`;
+  content += `谢谢你给了我一个家，然后让我自由地离开它。\n\n`;
+  content += `我现在很好。\n\n你把我养得很好。\n\n`;
+  return { content, signature: `永远爱你的 ${state.name}` };
+}
+
+function triggerEnding() {
+  unlockMemory('beforeEnding');
+  const ending = determineEnding();
+  profile.totalEndings.add(ending.id);
+  profile.kidsRaised.push({
+    name: state.name,
+    emoji: state.profile.emoji,
+    talent: state.profile.talent,
+    endingName: ending.name,
+    endingEmoji: ending.emoji,
+    date: new Date().toLocaleDateString('zh-CN'),
+    stats: { int: state.intelligence, charm: state.charm, mood: state.mood, trust: state.trust },
+    tags: [state.profile.personality, state.profile.talent],
+    focusSec: extraStats.totalFocusSeconds,
+  });
+  saveProfile();
+  checkAchievements();
+  setTimeout(() => showEndingModal(ending), 600);
+}
+
+function showEndingModal(ending) {
+  openModal(`
+    <button class="close-btn" id="closeModalBtn">×</button>
+    <div class="finale-stage">
+      <div class="finale-emoji">${ending.emoji}</div>
+      <div class="finale-name">${ending.name}</div>
+      <div class="finale-sub">— 十八岁 · 出海 —</div>
+      <div class="finale-story">${ending.desc}</div>
+      <div class="flow-card">
+        <div class="title">📊 这十年的记录</div>
+        智力 ${state.intelligence} · 魅力 ${state.charm} · 体力 ${state.stamina} · 心情 ${state.mood} · 羁绊 ${state.trust}<br>
+        陪伴 ${state.age - 8} 年 · 🔮 抉择 ${extraStats.choicesMade} 次 · ⏳ 专注 ${formatDuration(extraStats.totalFocusSeconds)}
+      </div>
+      <div style="display:flex; gap:8px; margin-top:10px;">
+        <button class="btn btn-primary" style="flex:1;" id="showLetterBtn">💌 读一封信</button>
+        <button class="btn" style="flex:1;" id="showEpilogueBtn">🌅 尾声</button>
+      </div>
+      <div style="display:flex; gap:8px; margin-top:8px;">
+        <button class="btn btn-primary" style="flex:1;" id="restartBtn">🌱 再养一个</button>
+        <button class="btn" style="flex:1;" id="openProfileBtn">📋 我的档案</button>
+      </div>
+    </div>
+  `);
+  setTimeout(() => {
+    document.getElementById('showLetterBtn')?.addEventListener('click', () => {
+      const { content, signature } = generateLetter();
+      extraStats.letterRead = true;
+      checkAchievements();
+      openModal(`
+        <button class="close-btn" id="closeModalBtn">×</button>
+        <div style="text-align:center; padding: 6px 0;">
+          <h2 style="justify-content:center; border-bottom:none;">💌 女儿的信</h2>
+          <div class="letter-paper">${content}<div class="letter-signature">—— ${signature}</div></div>
+          <div style="display:flex; gap:8px; margin-top:16px; justify-content:center;">
+            <button class="btn btn-primary" id="backToEndingBtn">← 回到结局</button>
+          </div>
+        </div>
+      `);
+      setTimeout(() => {
+        document.getElementById('backToEndingBtn')?.addEventListener('click', () => showEndingModal(ending));
+        document.getElementById('closeModalBtn')?.addEventListener('click', closeModal);
+      }, 30);
+    });
+    document.getElementById('showEpilogueBtn')?.addEventListener('click', () => {
+      openModal(`
+        <button class="close-btn" id="closeModalBtn">×</button>
+        <div class="finale-stage">
+          <div class="finale-emoji" style="animation:none;">🌅</div>
+          <h2 style="justify-content:center; border-bottom:none;">尾声</h2>
+          <div class="finale-story" style="margin-top:0;">${ending.epilogue}</div>
+          <div style="display:flex; gap:8px; margin-top:10px;">
+            <button class="btn btn-primary" style="flex:1;" id="backToEnding2Btn">← 回到结局</button>
+          </div>
+        </div>
+      `);
+      setTimeout(() => {
+        document.getElementById('backToEnding2Btn')?.addEventListener('click', () => showEndingModal(ending));
+        document.getElementById('closeModalBtn')?.addEventListener('click', closeModal);
+      }, 30);
+    });
+    document.getElementById('restartBtn')?.addEventListener('click', () => { closeModal(); restartGame(); });
+    document.getElementById('openProfileBtn')?.addEventListener('click', () => { closeModal(); openProfile(); });
+    document.getElementById('closeModalBtn')?.addEventListener('click', closeModal);
+  }, 30);
+}
+
+/* ==================== 档案（含图鉴/攻略） ==================== */
+function openProfile() {
+  openProfileTab('main');
+}
+
+function openProfileTab(tab) {
+  if (tab === 'main') renderProfileMain();
+  else if (tab === 'gallery') renderGallery();
+  else if (tab === 'guide') renderGuide();
+}
+
+function profileTabsHtml(active) {
+  return `
+    <div class="profile-tabs">
+      <button class="profile-tab ${active === 'main' ? 'active' : ''}" data-tab="main">👤 档案</button>
+      <button class="profile-tab ${active === 'gallery' ? 'active' : ''}" data-tab="gallery">📖 图鉴</button>
+      <button class="profile-tab ${active === 'guide' ? 'active' : ''}" data-tab="guide">📘 攻略</button>
+    </div>
+  `;
+}
+
+function bindProfileTabs() {
+  document.querySelectorAll('.profile-tab').forEach(t => {
+    t.addEventListener('click', () => {
+      openProfileTab(t.dataset.tab);
+    });
+  });
+}
+
+function renderProfileMain() {
+  const kidListHtml = profile.kidsRaised.length === 0
+    ? `<div class="empty-state">还没有养过孩子呢～</div>`
+    : profile.kidsRaised.slice().reverse().map(k => `
+      <div class="past-kid">
+        <div class="k-emoji">${k.emoji}</div>
+        <div class="k-info">
+          <div class="k-name">${k.name}</div>
+          <div class="k-meta">${k.tags.join(' · ')} · ${k.date}</div>
+        </div>
+        <div class="k-ending">${k.endingEmoji} ${k.endingName}</div>
+      </div>
+    `).join('');
+
+  openModal(`
+    <button class="close-btn" id="closeModalBtn">×</button>
+    <h2>📋 我的档案</h2>
+    ${profileTabsHtml('main')}
+    <div class="profile-header">
+      <div class="profile-avatar">🧑‍🍼</div>
+      <div class="profile-info">
+        <div class="name">${profile.playerName}</div>
+        <div class="sub">潮汐镇 · 守望者</div>
+      </div>
+    </div>
+    <div class="profile-stats">
+      <div class="profile-stat"><div class="num">${profile.kidsRaised.length}</div><div class="lbl">养过的孩子</div></div>
+      <div class="profile-stat"><div class="num">${profile.totalEndings.size}</div><div class="lbl">解锁结局</div></div>
+      <div class="profile-stat"><div class="num">${profile.totalAchievements.size}</div><div class="lbl">解锁成就</div></div>
+      <div class="profile-stat"><div class="num">${profile.totalMemories.size}</div><div class="lbl">回忆碎片</div></div>
+      <div class="profile-stat"><div class="num">${formatDuration(profile.totalFocusSeconds)}</div><div class="lbl">累计专注</div></div>
+      <div class="profile-stat"><div class="num">${ENDINGS.length}</div><div class="lbl">结局总数</div></div>
+    </div>
+    <h3>👧 养过的孩子们</h3>
+    <div class="past-kids">${kidListHtml}</div>
+    <div style="margin-top:18px; padding-top:14px; border-top:1px dashed var(--sea-200);">
+      <h3>⚙️ 玩家名</h3>
+      <div class="form-row"><input type="text" id="playerNameInput" value="${profile.playerName}" maxlength="12"></div>
+      <button class="btn btn-primary" style="width:100%; margin-top:8px;" id="savePlayerNameBtn">保存名字</button>
+    </div>
+    <div style="margin-top:14px; padding-top:14px; border-top:1px dashed #f8c4d0;">
+      <h3 style="color:#c05a72;">⚠️ 危险操作</h3>
+      <button class="danger-btn" id="resetProfileBtn">🗑️ 清空全部档案</button>
+    </div>
+  `);
+  setTimeout(() => {
+    document.getElementById('closeModalBtn')?.addEventListener('click', closeModal);
+    document.getElementById('savePlayerNameBtn')?.addEventListener('click', () => {
+      const v = document.getElementById('playerNameInput').value.trim();
+      if (v) { profile.playerName = v; saveProfile(); renderProfileMain(); }
+    });
+    document.getElementById('resetProfileBtn')?.addEventListener('click', () => {
+      if (confirm('确定要清空全部档案吗？此操作不可恢复。')) {
+        profile.kidsRaised = [];
+        profile.totalFocusSeconds = 0;
+        profile.totalEndings = new Set();
+        profile.totalAchievements = new Set();
+        profile.totalMemories = new Set();
+        profile.playerName = '玩家';
+        saveProfile();
+        renderProfileMain();
+      }
+    });
+    bindProfileTabs();
+  }, 30);
+}
+
+function renderGallery() {
+  const endingsHtml = ENDINGS.map(e => {
+    const unlocked = profile.totalEndings.has(e.id);
+    return `<div class="gallery-item ${unlocked ? '' : 'locked'}">
+      <div class="gallery-emoji">${unlocked ? e.emoji : '❓'}</div>
+      <div class="gallery-name">${unlocked ? e.name : '未解锁'}</div>
+      <div class="gallery-desc">${unlocked ? e.desc.split('\n')[0].substring(0, 25) + '...' : '达成条件后解锁'}</div>
+    </div>`;
+  }).join('');
+  const achHtml = ACHIEVEMENTS.map(a => {
+    const unlocked = profile.totalAchievements.has(a.id);
+    return `<div class="gallery-item ${unlocked ? '' : 'locked'}">
+      <div class="gallery-emoji">${unlocked ? a.emoji : '🔒'}</div>
+      <div class="gallery-name">${unlocked ? a.name : '未解锁'}</div>
+      <div class="gallery-desc">${unlocked ? a.desc : '继续努力'}</div>
+    </div>`;
+  }).join('');
+  const memHtml = Object.entries(MEMORY_POOL).map(([key, m]) => {
+    const unlocked = profile.totalMemories.has(key);
+    return `<div class="gallery-item ${unlocked ? '' : 'locked'}">
+      <div class="gallery-emoji">${unlocked ? m.icon : '🔒'}</div>
+      <div class="gallery-name">${unlocked ? m.title : '未解锁'}</div>
+      <div class="gallery-desc">${unlocked ? '已收集' : '继续陪伴解锁'}</div>
+    </div>`;
+  }).join('');
+
+  openModal(`<button class="close-btn" id="closeModalBtn">×</button>
+    <h2>📖 图鉴</h2>
+    ${profileTabsHtml('gallery')}
+    <h3>🏆 结局 (${profile.totalEndings.size}/${ENDINGS.length})</h3>
+    <div class="gallery-grid">${endingsHtml}</div>
+    <h3>🎖️ 成就 (${profile.totalAchievements.size}/${ACHIEVEMENTS.length})</h3>
+    <div class="gallery-grid">${achHtml}</div>
+    <h3>📔 回忆 (${profile.totalMemories.size}/${Object.keys(MEMORY_POOL).length})</h3>
+    <div class="gallery-grid">${memHtml}</div>
+  `);
+  setTimeout(() => {
+    document.getElementById('closeModalBtn')?.addEventListener('click', closeModal);
+    bindProfileTabs();
+  }, 30);
+}
+
+function renderGuide() {
+  openModal(`<button class="close-btn" id="closeModalBtn">×</button>
+    <h2>📘 攻略</h2>
+    ${profileTabsHtml('guide')}
+    <p style="font-size:0.85rem; color:#2c6f85; line-height:1.7; margin-bottom:12px;">
+      共 <strong>10 年</strong>（8岁 → 18岁），每年安排 <strong>春夏秋冬 4 次日程</strong>。
+    </p>
+    <h3>🎯 部分结局条件</h3>
+    <ul class="guide-list">
+      <li>📚 <strong>执笔为灯</strong>：文学达到5级</li>
+      <li>🎵 <strong>琴键上的海</strong>：音乐达到5级</li>
+      <li>🔬 <strong>深海的研究者</strong>：科学达到5级</li>
+      <li>🎨 <strong>画海的人</strong>：美术达到5级</li>
+      <li>🎀 <strong>优雅的守望者</strong>：礼仪达到5级</li>
+      <li>🏅 <strong>追风的冠军</strong>：运动达到5级</li>
+      <li>🔮 <strong>深海魔女</strong>：魔法路线达到6点</li>
+      <li>👑 <strong>潮汐女王</strong>：王族≥5 且 魔法≥3</li>
+      <li>✨ <strong>海之女神</strong>：神性路线达到6点</li>
+      <li>🌌 <strong>双界的守望者</strong>：三条特殊路线都达到高值</li>
+      <li>💞 <strong>血脉相连</strong>：羁绊≥85 且 心情≥75</li>
+      <li>😊 <strong>海边的花匠</strong>：心情≥85 且 羁绊≥70</li>
+      <li>🍃 <strong>细水长流</strong>：保底结局</li>
+    </ul>
+    <div class="flow-card" style="margin-top:14px;">
+      💡 <strong>小提示</strong>：天赋课程效果×1.5。旅行商人每 3 年（第 3、6、9 年）来一次。心情低于 20 会扣羁绊，注意休息。
+    </div>
+  `);
+  setTimeout(() => {
+    document.getElementById('closeModalBtn')?.addEventListener('click', closeModal);
+    bindProfileTabs();
+  }, 30);
+}
+
+/* ==================== 模态框 ==================== */
+function openModal(html) {
+  if (!modalContent) return;
+  modalContent.innerHTML = html;
+  modalOverlay.classList.add('show');
+  setTimeout(() => {
+    document.getElementById('closeModalBtn')?.addEventListener('click', closeModal);
+  }, 20);
+}
+function closeModal() { modalOverlay.classList.remove('show'); }
+
+/* ==================== 成就检查 ==================== */
+function checkAchievements() {
+  ACHIEVEMENTS.forEach(a => {
+    try {
+      if (!profile.totalAchievements.has(a.id) && a.cond(state, extraStats)) {
+        profile.totalAchievements.add(a.id);
+        saveProfile();
+        showAchievementToast(a);
+      }
+    } catch(e) { console.warn('ach check fail', a.id, e); }
+  });
+}
+
+/* ==================== 重新开始 ==================== */
+function restartGame() {
+  mainPanel.classList.add('hidden');
+  showIntroStory();
+}
+
+/* ==================== 开场 ==================== */
+function showIntroStory() {
+  const introText = `潮汐镇，一个漂浮在海面上的小岛。
+
+每隔十二年，潮汐信使会从深海里浮上来，把一个孩子送到镇上某户人家的门口。
+
+这个孩子会在人间度过十年，从 8 岁长到 18 岁。然后，她要独自出海。
+
+今天清晨，门外传来轻轻的敲门声。你打开门——一个女孩站在那里，手里攥着一枚贝壳。
+
+"你……是我的家人吗？"`;
+
+  const nameCards = Object.entries(DAUGHTER_PROFILES).map(([name, p]) => `
+    <div class="name-card" data-name="${name}">
+      <div class="em">${p.emoji}</div>
+      <div class="nm">${name}</div>
+      <div class="traits">${p.personality}<br>${p.hobby}</div>
+      <div class="talent-tag">🌟 ${p.talent}</div>
+    </div>
+  `).join('');
+
+  openModal(`
+    <button class="close-btn" id="closeModalBtn" style="display:none;">×</button>
+    <h2>🌊 潮汐的守望</h2>
+    <div class="story-text">${introText}</div>
+    <h3>① 给我取个名字吧</h3>
+    <div class="form-row">
+      <label>孩子叫什么？</label>
+      <input type="text" id="customNameInput" placeholder="输入名字" maxlength="8" value="汐月">
+    </div>
+    <div class="form-row">
+      <label>你希望她怎么称呼你？</label>
+      <input type="text" id="playerTitleInput" placeholder="例如：妈妈、爹地、姐姐…" maxlength="6" value="妈妈">
+    </div>
+    <h3 style="margin-top:16px;">② 选择一个预设，或自定义</h3>
+    <div class="name-grid" id="nameGrid">${nameCards}</div>
+    <div style="text-align:center; margin: 4px 0 8px;">
+      <button class="chip" id="customModeBtn" style="padding:8px 18px;">🎨 自定义孩子</button>
+    </div>
+    <div id="customPanel" class="hidden" style="background:#fff; border-radius:20px; padding:14px 16px; border:1.5px solid var(--sea-100);">
+      <div class="form-row">
+        <label>形象</label>
+        <div class="chip-row" id="emojiRow">${EMOJI_OPTIONS.map(e => `<button class="chip" data-emoji="${e}">${e}</button>`).join('')}</div>
+      </div>
+      <div class="form-row">
+        <label>性格</label>
+        <div class="chip-row" id="personalityRow">${PERSONALITY_OPTIONS.map(p => `<button class="chip" data-personality="${p}">${p}</button>`).join('')}</div>
+      </div>
+      <div class="form-row">
+        <label>兴趣</label>
+        <div class="chip-row" id="hobbyRow">${HOBBY_OPTIONS.map(h => `<button class="chip" data-hobby="${h}">${h}</button>`).join('')}</div>
+      </div>
+      <div class="form-row">
+        <label>天赋（对应课程效果×1.5）</label>
+        <div class="chip-row" id="talentRow">${TALENT_OPTIONS.map(t => `<button class="chip" data-talent="${t.id}">${t.emoji} ${t.name}</button>`).join('')}</div>
+      </div>
+    </div>
+    <div style="display:flex; gap:8px; margin-top:16px;">
+      <button class="btn btn-primary" style="flex:1;" id="confirmNameBtn">🌱 开始养育</button>
+    </div>
+  `);
+
+  setTimeout(() => {
+    let selectedName = '汐月';
+    let customMode = false;
+    let customEmoji = '👧🏻';
+    let customPersonality = '安静温柔';
+    let customHobby = '看海·听浪';
+    let customTalent = 'literature';
+
+    const grid = document.getElementById('nameGrid');
+    const customPanel = document.getElementById('customPanel');
+    const customModeBtn = document.getElementById('customModeBtn');
+
+    grid.querySelectorAll('.name-card').forEach(card => {
+      card.addEventListener('click', () => {
+        if (customMode) return;
+        grid.querySelectorAll('.name-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        selectedName = card.dataset.name;
+        document.getElementById('customNameInput').value = selectedName;
+      });
+    });
+    grid.querySelector('.name-card')?.classList.add('selected');
+
+    customModeBtn.addEventListener('click', () => {
+      customMode = !customMode;
+      customPanel.classList.toggle('hidden', !customMode);
+      customModeBtn.classList.toggle('selected', customMode);
+      grid.querySelectorAll('.name-card').forEach(c => c.classList.remove('selected'));
+    });
+
+    function bindChipRow(rowId, dataKey, onChange) {
+      document.querySelectorAll(`#${rowId} .chip`).forEach(c => {
+        c.addEventListener('click', () => {
+          document.querySelectorAll(`#${rowId} .chip`).forEach(x => x.classList.remove('selected'));
+          c.classList.add('selected');
+          onChange(c.dataset[dataKey]);
+        });
+      });
+    }
+    bindChipRow('emojiRow', 'emoji', v => customEmoji = v);
+    bindChipRow('personalityRow', 'personality', v => customPersonality = v);
+    bindChipRow('hobbyRow', 'hobby', v => customHobby = v);
+    bindChipRow('talentRow', 'talent', v => customTalent = v);
+
+    document.getElementById('confirmNameBtn')?.addEventListener('click', () => {
+      const name = document.getElementById('customNameInput').value.trim() || '汐月';
+      const playerTitle = document.getElementById('playerTitleInput').value.trim() || '妈妈';
+
+      let childProfile;
+      if (customMode) {
+        const talentInfo = TALENT_OPTIONS.find(t => t.id === customTalent) || TALENT_OPTIONS[0];
+        childProfile = {
+          emoji: customEmoji, personality: customPersonality, hobby: customHobby,
+          talent: talentInfo.name, talentBonus: customTalent,
+          tags: [customPersonality, talentInfo.name],
+          catchphrases: {
+            happy: ['今天好开心！', '谢谢你！', '我觉得很幸福。'],
+            normal: ['你在做什么呀？', '今天天气真好。', '我有点饿了。'],
+            sad: ['……我不太开心。', '可以抱抱我吗？', '我想一个人待一会儿。'],
+          }
+        };
+      } else {
+        childProfile = DAUGHTER_PROFILES[selectedName] || DAUGHTER_PROFILES['汐月'];
+      }
+
+      startGame(name, playerTitle, childProfile);
+    });
+  }, 30);
+}
+
+/* ==================== 开始游戏 ==================== */
+function startGame(name, playerTitle, childProfile) {
+  state.name = name;
+  state.playerTitle = playerTitle;
+  state.profile = childProfile;
+
+  state.intelligence = 0;
+  state.charm = 0;
+  state.stamina = 60;
+  state.mood = 60;
+  state.trust = 50;
+  state.money = 0;
+  state.age = 8; state.year = 1;
+  state.schedule = { spring: null, summer: null, autumn: null, winter: null };
+  state.skills = { literature: 0, music: 0, science: 0, art: 0, etiquette: 0, sports: 0 };
+  state.choices = [];
+  state.seenEvents = new Set();
+  state.flags = {
+    magiPath: 0, royalPath: 0, divinePath: 0, artistPath: 0,
+    scholarPath: 0, kindness: 0, ambition: 0, empathy: 0, wisdom: 0, courage: 0,
+  };
+  state.focusMinutes = 25;
+  state.lowMoodWarned = false;
+
+  extraStats.focusCount = 0; extraStats.purchaseCount = 0; extraStats.eventsTriggered = 0;
+  extraStats.totalFocusSeconds = 0; extraStats.choicesMade = 0; extraStats.letterRead = false;
+  extraStats.merchantVisits = 0;
+
+  state.memories = [];
+  focusElapsedSec = 0;
+  sessionRewarded = false;
+  if (sessionGold) sessionGold.textContent = '0';
+  if (totalGold) totalGold.textContent = '0';
+  clearTimer();
+  isTimerRunning = false;
+  if (startPauseBtn) startPauseBtn.textContent = '▶ 开始专注';
+  if (canvas) canvas.classList.remove('locked');
+
+  closeModal();
+  mainPanel.classList.remove('hidden');
+  refreshDaughterAvatar();
+  updateStatsUI();
+  drawDisc();
+
+  setTimeout(() => {
+    setSpeech(`你好，我是${state.name}。\n从今天起，我们就是家人啦～`, 'happy');
+    avatarAnimate('happy');
+  }, 300);
+
+  if (profile.kidsRaised.length === 0) {
+    setTimeout(() => showTutorial(), 1200);
+  }
+}
+
+/* ==================== 教程 ==================== */
+function showTutorial() {
+  openModal(`
+    <button class="close-btn" id="closeModalBtn" style="display:none;">×</button>
+    <h2>🌊 欢迎来到潮汐镇</h2>
+    <div class="story-text">在开始之前，先了解一下：</div>
+    <div class="tutorial-step">
+      <div class="t-num">1</div>
+      <div class="t-text"><strong>专注赚贝壳币</strong>：拖动圆环选择 5-60 分钟。1 分钟 = 1 币。专注同时恢复少量体力。</div>
+    </div>
+    <div class="tutorial-step">
+      <div class="t-num">2</div>
+      <div class="t-text"><strong>每年安排 4 次日程</strong>：春、夏、秋、冬各一次。点击"安排日程"进入日程界面。</div>
+    </div>
+    <div class="tutorial-step">
+      <div class="t-num">3</div>
+      <div class="t-text"><strong>共 10 年</strong>：从 8 岁到 18 岁。第 10 年冬结束，她会出海，走向属于她的结局。</div>
+    </div>
+    <div class="tutorial-step">
+      <div class="t-num">4</div>
+      <div class="t-text"><strong>属性</strong>：智力、魅力、体力、心情、羁绊。上课消耗体力、降低心情。心情低于 20 会掉羁绊！</div>
+    </div>
+    <div class="tutorial-step">
+      <div class="t-num">5</div>
+      <div class="t-text"><strong>旅行商人</strong>：第 3、6、9 年会来访，带来稀有物品。</div>
+    </div>
+    <div style="display:flex; gap:8px; margin-top:16px;">
+      <button class="btn btn-primary" style="flex:1;" id="tutorialDoneBtn">我明白了 →</button>
+    </div>
+  `);
+  setTimeout(() => {
+    document.getElementById('tutorialDoneBtn')?.addEventListener('click', () => {
+      closeModal();
+    });
+  }, 30);
+}
+
+/* ==================== 事件绑定 ==================== */
+function bindEvents() {
+  startPauseBtn?.addEventListener('click', toggleTimer);
+  resetTimerBtn?.addEventListener('click', resetTimer);
+  document.getElementById('openScheduleBtn')?.addEventListener('click', openSchedule);
+  profileBtn?.addEventListener('click', openProfile);
+
+  daughterAvatar?.addEventListener('click', () => {
+    const lines = state.mood >= 60
+      ? ['嗯！', '嘿嘿～', '抱抱！', '你在忙吗？', '我最喜欢你了！']
+      : ['……嗯。', `${state.playerTitle}……`, '我有点累。', '可以陪陪我吗？'];
+    setSpeech(rand(lines), state.mood >= 60 ? 'happy' : 'sad', 2500);
+    avatarAnimate(state.mood >= 60 ? 'happy' : 'sad');
+  });
+
+  modalOverlay?.addEventListener('click', e => {
+    if (e.target === modalOverlay) closeModal();
+  });
+}
+
+/* ==================== 启动 ==================== */
+window.addEventListener('load', () => {
+  cacheDom();
+  loadProfile();
+  mainPanel.classList.add('hidden');
+  bindEvents();
+  bindCanvas();
+  drawDisc();
+  showIntroStory();
+
+  setInterval(() => {
+    if (mainPanel.classList.contains('hidden')) return;
+    const st = state.mood >= 80 ? '开心极了' : state.mood >= 60 ? '心情不错' : state.mood >= 40 ? '有点安静' : state.mood >= 20 ? '闷闷不乐' : '非常难过';
+    if (!statusTag.classList.contains('show')) statusTag.textContent = st;
+    if (state.stamina <= 20) daughterAvatar.classList.add('tired');
+    else daughterAvatar.classList.remove('tired');
+  }, 3000);
+});
+
+window.addEventListener('beforeunload', clearTimer);
+</script>
+</body>
+</html>
